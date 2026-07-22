@@ -716,8 +716,8 @@ function renderEvaluation(modeKey) {
   updateText("#hitMetric", mode.hit);
   updateText("#qualityMetric", mode.quality);
   updateText("#riskMetric", mode.risk);
-  complianceScore.textContent = mode.score;
-  complianceBar.style.width = `${mode.score}%`;
+  if (complianceScore) complianceScore.textContent = mode.score;
+  if (complianceBar) complianceBar.style.width = `${mode.score}%`;
   updateText("#summaryText", mode.summary);
   evaluationList.innerHTML = mode.items
     .map(([status, title, body]) => `
@@ -880,7 +880,7 @@ function updateReferenceCenter() {
 
 function setReadingProgress(activeIndex, state = "Ready") {
   const stateLabels = { Ready: "待命", Reading: "讀取中", Complete: "已完成" };
-  readingState.textContent = stateLabels[state] || state;
+  if (readingState) readingState.textContent = stateLabels[state] || state;
   readingSteps.forEach((step, index) => {
     step.classList.toggle("complete", index < activeIndex);
     step.classList.toggle("active", index === activeIndex);
@@ -993,6 +993,7 @@ function updateSkillRun(snapshot = currentSnapshot) {
 }
 
 function renderComplianceReport(snapshot = currentSnapshot, scores = null) {
+  if (!reportSummaryGrid || !ruleHitList || !scoreBreakdownList || !recommendationList) return;
   const context = snapshot?.context || currentContextProfile();
   const active = activeReferences();
   const modeKey = snapshot?.modeKey || modeFromValue(Number(creativityRange.value));
@@ -1133,8 +1134,8 @@ function applySnapshot(snapshot) {
   updateText("#hitMetric", snapshot.hit);
   updateText("#qualityMetric", snapshot.quality);
   updateText("#riskMetric", snapshot.risk);
-  complianceScore.textContent = snapshot.score;
-  complianceBar.style.width = `${snapshot.score}%`;
+  if (complianceScore) complianceScore.textContent = snapshot.score;
+  if (complianceBar) complianceBar.style.width = `${snapshot.score}%`;
   updateText("#summaryText", snapshot.summary);
   evaluationList.innerHTML = snapshot.items
     .map(([status, title, body]) => `
@@ -1495,16 +1496,16 @@ function runMockGeneration() {
     "計算規則命中與風險..."
   ];
   let index = 0;
-  generationOverlay.classList.remove("d-none");
-  generationStep.textContent = steps[index];
+  generationOverlay?.classList.remove("d-none");
+  if (generationStep) generationStep.textContent = steps[index];
   setReadingProgress(0, "Reading");
-  runButton.disabled = true;
-  runTopButton.disabled = true;
+  if (runButton) runButton.disabled = true;
+  if (runTopButton) runTopButton.disabled = true;
 
   const stepTimer = setInterval(() => {
     index += 1;
     if (index < steps.length) {
-      generationStep.textContent = steps[index];
+      if (generationStep) generationStep.textContent = steps[index];
       setReadingProgress(Math.min(index, readingSteps.length - 1), "Reading");
     }
   }, 520);
@@ -1522,9 +1523,9 @@ function runMockGeneration() {
     applySnapshot(snapshot);
     updateSkillRun(snapshot);
     setReadingProgress(readingSteps.length - 1, "Complete");
-    generationOverlay.classList.add("d-none");
-    runButton.disabled = false;
-    runTopButton.disabled = false;
+    generationOverlay?.classList.add("d-none");
+    if (runButton) runButton.disabled = false;
+    if (runTopButton) runTopButton.disabled = false;
     showToast();
   }, 2300);
 }
@@ -1654,8 +1655,8 @@ historyList.addEventListener("click", (event) => {
   if (snapshot) applySnapshot(snapshot);
 });
 
-runButton.addEventListener("click", runMockGeneration);
-runTopButton.addEventListener("click", runMockGeneration);
+runButton?.addEventListener("click", runMockGeneration);
+runTopButton?.addEventListener("click", runMockGeneration);
 
 ruleTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
@@ -1742,6 +1743,21 @@ function setupSourcePanelCollapse() {
   });
 }
 
+function setupReadingProcessCollapse() {
+  const section = document.querySelector(".reading-process");
+  const button = document.querySelector("#readingCollapseButton");
+  const body = document.querySelector("#readingProcessBody");
+  if (!section || !button || !body) return;
+
+  button.addEventListener("click", () => {
+    const collapsed = section.classList.toggle("is-collapsed");
+    button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    button.setAttribute("aria-label", `${collapsed ? "展開" : "縮合"}從規則到畫面的轉譯軌跡`);
+    button.title = collapsed ? "展開區域" : "縮合區域";
+    body.hidden = collapsed;
+  });
+}
+
 function applySourcePanelOrder() {
   const sourcePanel = document.querySelector(".source-panel");
   [...sourcePanel.querySelectorAll(":scope > .panel-block")]
@@ -1764,7 +1780,7 @@ applyDesignButton.addEventListener("click", () => {
   showToast();
 });
 
-copyReportButton.addEventListener("click", async () => {
+copyReportButton?.addEventListener("click", async () => {
   const text = reportText();
   try {
     await navigator.clipboard.writeText(text);
@@ -1778,7 +1794,7 @@ copyReportButton.addEventListener("click", async () => {
   showToast();
 });
 
-exportReportButton.addEventListener("click", () => {
+exportReportButton?.addEventListener("click", () => {
   exportReportButton.textContent = "已準備";
   window.setTimeout(() => {
     exportReportButton.textContent = "匯出報告";
@@ -1788,6 +1804,7 @@ exportReportButton.addEventListener("click", () => {
 
 applySourcePanelOrder();
 setupSourcePanelCollapse();
+setupReadingProcessCollapse();
 renderEvaluation(modeFromValue(Number(creativityRange.value)));
 renderHistory();
 updateReferenceCenter();
@@ -1892,30 +1909,34 @@ function renderPlanningPanels(snapshot = currentSnapshot) {
   const planningFactList = document.querySelector("#planningFactList");
   const decisionSummary = document.querySelector("#decisionSummary");
   const decisionList = document.querySelector("#decisionList");
-  if (!contextDomain || !contextFactList || !planningLayout || !planningFactList || !decisionSummary || !decisionList) return;
+  if (contextDomain && contextFactList) {
+    contextDomain.textContent = context.domainLabel;
+    contextFactList.innerHTML = [
+      ["User", context.primaryUser],
+      ["Task", context.mainTask],
+      ["Workflow", context.workflow],
+      ["Risk", context.risk],
+      ["Data", context.dataTypes.join(" / ")],
+      ["Density", context.informationDensity]
+    ].map(([label, value]) => `<article><span>${label}</span><strong>${escapeHtml(value)}</strong></article>`).join("");
+  }
 
-  contextDomain.textContent = context.domainLabel;
-  contextFactList.innerHTML = [
-    ["User", context.primaryUser],
-    ["Task", context.mainTask],
-    ["Workflow", context.workflow],
-    ["Risk", context.risk],
-    ["Data", context.dataTypes.join(" / ")],
-    ["Density", context.informationDensity]
-  ].map(([label, value]) => `<article><span>${label}</span><strong>${escapeHtml(value)}</strong></article>`).join("");
+  if (planningLayout && planningFactList) {
+    planningLayout.textContent = plan.layoutLabel;
+    planningFactList.innerHTML = [
+      ["IA", plan.iaPattern],
+      ["Navigation", plan.navigation.slice(0, 4).join(" / ")],
+      ["Widgets", plan.widgets.map((item) => window.SkillPlanningLab.widgetTitle(item)).join(" / ")],
+      ["Priority", plan.priority.join(" / ") || "standard"]
+    ].map(([label, value]) => `<article><span>${label}</span><strong>${escapeHtml(value)}</strong></article>`).join("");
+  }
 
-  planningLayout.textContent = plan.layoutLabel;
-  planningFactList.innerHTML = [
-    ["IA", plan.iaPattern],
-    ["Navigation", plan.navigation.slice(0, 4).join(" / ")],
-    ["Widgets", plan.widgets.map((item) => window.SkillPlanningLab.widgetTitle(item)).join(" / ")],
-    ["Priority", plan.priority.join(" / ") || "standard"]
-  ].map(([label, value]) => `<article><span>${label}</span><strong>${escapeHtml(value)}</strong></article>`).join("");
-
-  decisionSummary.textContent = `${plan.decisions.length} decisions`;
-  decisionList.innerHTML = plan.decisions
-    .map((item, index) => `<article><span>${String(index + 1).padStart(2, "0")}</span><p>${escapeHtml(item)}</p></article>`)
-    .join("");
+  if (decisionSummary && decisionList) {
+    decisionSummary.textContent = `${plan.decisions.length} decisions`;
+    decisionList.innerHTML = plan.decisions
+      .map((item, index) => `<article><span>${String(index + 1).padStart(2, "0")}</span><p>${escapeHtml(item)}</p></article>`)
+      .join("");
+  }
 }
 
 function applySnapshot(snapshot) {
@@ -1931,8 +1952,8 @@ function applySnapshot(snapshot) {
   updateText("#hitMetric", snapshot.hit);
   updateText("#qualityMetric", snapshot.quality);
   updateText("#riskMetric", snapshot.risk);
-  complianceScore.textContent = snapshot.score;
-  complianceBar.style.width = `${snapshot.score}%`;
+  if (complianceScore) complianceScore.textContent = snapshot.score;
+  if (complianceBar) complianceBar.style.width = `${snapshot.score}%`;
   updateText("#summaryText", snapshot.summary);
   evaluationList.innerHTML = snapshot.items
     .map(([status, title, body]) => `
@@ -1992,3 +2013,17 @@ function renderHistory() {
     </article>
   `;
 }
+
+function initializePlanningPreview() {
+  const modeKey = modeFromValue(Number(creativityRange.value));
+  const snapshot = buildSnapshot(chooseVariant(modeKey), modeKey, {
+    id: currentSnapshot?.id || Date.now(),
+    seed: generationCount
+  });
+  renderEvaluation(modeKey);
+  applySnapshot(snapshot);
+  renderDensity();
+  setReadingProgress(2, "Ready");
+}
+
+initializePlanningPreview();

@@ -254,6 +254,31 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
           </div>
         </div>
 
+        <div class="prompt-console preview-input-console">
+          <div class="try-skill-header">
+            <div>
+              <label class="form-label" for="testPrompt">Try Skill 輸入</label>
+              <p>輸入需求後只做本次試跑，不保存內容。</p>
+            </div>
+            <span id="trySkillStatus">尚未試跑</span>
+          </div>
+          <div class="prompt-row">
+            <textarea class="form-control" id="testPrompt"
+              rows="2">建立一個 AI agent 任務管理 dashboard，需符合 skill 的企業後台規範，並保留設計實驗感。</textarea>
+            <button class="btn btn-dark" id="runButton" type="button">生成預覽</button>
+          </div>
+          <div class="history-console">
+            <div class="section-heading mb-2">
+              <span>History</span>
+              <h2>生成紀錄</h2>
+            </div>
+            <div class="generation-diff" id="generationDiff" aria-live="polite"></div>
+            <div class="history-list" id="historyList" aria-live="polite">
+              <div class="history-empty">按下生成預覽後，這裡會保留最近 8 次 UI 版本。</div>
+            </div>
+          </div>
+        </div>
+
         <div class="generation-overlay d-none" id="generationOverlay" role="status" aria-live="polite">
           <div class="spinner-border text-dark" aria-hidden="true"></div>
           <div>
@@ -261,16 +286,6 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <span id="generationStep">解析 Skill 規則與 reference...</span>
           </div>
         </div>
-
-
-
-
-
-
-
-
-
-
         <div class="preview-workbench" id="previewWorkbench">
           <div class="preview-frame desktop" id="previewFrame">
             <div class="generated-ui balanced" id="generatedUi">
@@ -374,37 +389,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
           </section>
         </div>
 
-        <div class="prompt-console">
-          <div class="try-skill-header">
-            <div>
-              <label class="form-label" for="testPrompt">Try Skill 輸入</label>
-              <p>輸入需求後只做本次試跑，不保存內容。</p>
-            </div>
-            <span id="trySkillStatus">尚未試跑</span>
-          </div>
-          <div class="prompt-row">
-            <textarea class="form-control" id="testPrompt"
-              rows="2">建立一個 AI agent 任務管理 dashboard，需符合 skill 的企業後台規範，並保留設計實驗感。</textarea>
-            <button class="btn btn-dark" id="runButton" type="button">生成預覽</button>
-          </div>
-
-        <div class="history-console">
-          <div class="section-heading mb-2">
-            <span>History</span>
-            <h2>生成紀錄</h2>
-          </div>
-          <div class="generation-diff" id="generationDiff" aria-live="polite"></div>
-          <div class="history-list" id="historyList" aria-live="polite">
-            <div class="history-empty">按下生成預覽後，這裡會保留最近 8 次 UI 版本。</div>
-          </div>
-        </div>
-
-
-
-
-
-
-
+        <div class="prompt-console preview-output-console">
           <div class="try-output-grid" aria-live="polite">
             <article>
               <span>假的讀取結果</span>
@@ -422,77 +407,51 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
           <div class="trace-map" id="traceMap" aria-live="polite"></div>
         </div>
 
-        <section class="compliance-report" aria-labelledby="complianceReportTitle">
-          <div class="report-header">
-            <div>
-              <p class="eyebrow mb-1">Compliance Report</p>
-              <h2 id="complianceReportTitle">生成合規報告</h2>
-            </div>
-            <div class="report-actions">
-              <button class="btn btn-outline-dark btn-sm" id="copyReportButton" type="button">複製摘要</button>
-              <button class="btn btn-dark btn-sm" id="exportReportButton" type="button">匯出報告</button>
-            </div>
-          </div>
-          <div class="report-summary-grid" id="reportSummaryGrid" aria-live="polite"></div>
-          <div class="report-section-grid">
-            <article class="report-panel">
-              <div class="context-block-title"><span>Rule Hits</span><strong id="ruleHitSummary">0 / 0</strong></div>
-              <div class="rule-hit-list" id="ruleHitList"></div>
-            </article>
-            <article class="report-panel">
-              <div class="context-block-title"><span>Score Breakdown</span><strong
-                  id="scoreBreakdownSummary">Ready</strong></div>
-              <div class="score-breakdown-list" id="scoreBreakdownList"></div>
-            </article>
-            <article class="report-panel report-panel-wide">
-              <div class="context-block-title"><span>Recommendations</span><strong id="recommendationSummary">Next
-                  steps</strong></div>
-              <div class="recommendation-list" id="recommendationList"></div>
-            </article>
-          </div>
-        </section>
-
-
-
-                <section class="reading-process" aria-label="AI Reading Process">
+        <section class="reading-process" aria-label="AI Reading Process">
           <div class="reading-process-header">
             <div>
               <p class="eyebrow mb-1">AI Reading Process</p>
               <h3>從規則到畫面的轉譯軌跡</h3>
             </div>
+            <button class="reading-collapse-button" id="readingCollapseButton" type="button" aria-expanded="true"
+              aria-controls="readingProcessBody" aria-label="縮合從規則到畫面的轉譯軌跡" title="縮合區域">
+              <span aria-hidden="true"></span>
+            </button>
           </div>
-          <div class="reading-brief" aria-label="本次讀取摘要">
-            <div><span>輸入來源</span><strong id="readingSourceCount">4 份</strong></div>
-            <div><span>規則抽取</span><strong id="readingRuleCount">14 條</strong></div>
-            <div><span>證據連結</span><strong id="readingEvidenceCount">2 組</strong></div>
-            <p id="readingSummary">已辨識企業後台、台灣繁中與流程可視化規則，準備套用至 UI Preview。</p>
-          </div>
-          <div class="reading-flow" id="readingFlow" aria-live="polite">
-            <article class="reading-step complete" data-step="0" tabindex="0">
-              <span>01</span>
-              <strong>讀取 Skill.md</strong>
-              <small>7 條工作規則</small>
-            </article>
-            <article class="reading-step complete" data-step="1" tabindex="0">
-              <span>02</span>
-              <strong>整理 Reference</strong>
-              <small>2 組有效證據</small>
-            </article>
-            <article class="reading-step active" data-step="2" tabindex="0">
-              <span>03</span>
-              <strong>套用 DESIGN.md</strong>
-              <small>5 個設計條件</small>
-            </article>
-            <article class="reading-step" data-step="3" tabindex="0">
-              <span>04</span>
-              <strong>生成 UI Preview</strong>
-              <small>1 個工作台版本</small>
-            </article>
-            <article class="reading-step" data-step="4" tabindex="0">
-              <span>05</span>
-              <strong>輸出評估</strong>
-              <small>完整度與偏移風險</small>
-            </article>
+          <div id="readingProcessBody">
+            <div class="reading-brief" aria-label="本次讀取摘要">
+              <div><span>輸入來源</span><strong id="readingSourceCount">4 份</strong></div>
+              <div><span>規則抽取</span><strong id="readingRuleCount">14 條</strong></div>
+              <div><span>證據連結</span><strong id="readingEvidenceCount">2 組</strong></div>
+              <p id="readingSummary">已辨識企業後台、台灣繁中與流程可視化規則，準備套用至 UI Preview。</p>
+            </div>
+            <div class="reading-flow" id="readingFlow" aria-live="polite">
+              <article class="reading-step complete" data-step="0" tabindex="0">
+                <span>01</span>
+                <strong>讀取 Skill.md</strong>
+                <small>7 條工作規則</small>
+              </article>
+              <article class="reading-step complete" data-step="1" tabindex="0">
+                <span>02</span>
+                <strong>整理 Reference</strong>
+                <small>2 組有效證據</small>
+              </article>
+              <article class="reading-step active" data-step="2" tabindex="0">
+                <span>03</span>
+                <strong>套用 DESIGN.md</strong>
+                <small>5 個設計條件</small>
+              </article>
+              <article class="reading-step" data-step="3" tabindex="0">
+                <span>04</span>
+                <strong>生成 UI Preview</strong>
+                <small>1 個工作台版本</small>
+              </article>
+              <article class="reading-step" data-step="4" tabindex="0">
+                <span>05</span>
+                <strong>輸出評估</strong>
+                <small>完整度與偏移風險</small>
+              </article>
+            </div>
           </div>
         </section>
 
@@ -605,12 +564,12 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="./js/context-analysis.js"></script>
   <script src="./js/planner.js"></script>
   <script src="./js/widget-library.js"></script>
   <script src="./js/layout-engine.js"></script>
   <script src="./js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" async></script>
 </body>
 
 </html>
