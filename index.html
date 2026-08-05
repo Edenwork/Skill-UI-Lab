@@ -331,11 +331,30 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
       <section class="preview-stage" aria-label="AI 生成 UI 預覽">
         <div class="stage-toolbar">
           <div>
-            <p class="eyebrow mb-1">Generated UI Preview</p>
-            <h2 id="previewTitle">從規則文件到 UI 的追蹤</h2>
-            <small>SKILL.md、DESIGN.md 與 Reference 如何影響目前 Preview</small>
+            <p class="eyebrow mb-1">Skill Verification Summary</p>
+            <h2 id="previewTitle">AI 是否讀取、理解並套用 Skill</h2>
+            <small>先看驗證結論；Preview 是證據來源之一。</small>
           </div>
         </div>
+
+        <section class="verification-summary-card" aria-label="本次 Skill 驗證摘要">
+          <div>
+            <span>Summary</span>
+            <strong id="phaseZeroSummary">AI 已讀取 company-design Skill，規則已進入 Preview 驗證流程。</strong>
+          </div>
+          <div class="verification-outcome-strip" aria-label="驗證狀態摘要">
+            <article><span>通過</span><strong id="phasePassedCount">3</strong></article>
+            <article><span>待確認</span><strong id="phaseReviewCount">1</strong></article>
+            <article><span>未通過</span><strong id="phaseFailedCount">0</strong></article>
+          </div>
+        </section>
+
+        <nav class="workspace-tabs" aria-label="工作區檢視">
+          <button class="active" type="button">Summary</button>
+          <button type="button">Preview</button>
+          <button type="button">Rules</button>
+          <button type="button">Compare</button>
+        </nav>
 
         <div class="prompt-console preview-input-console">
           <div class="try-skill-header">
