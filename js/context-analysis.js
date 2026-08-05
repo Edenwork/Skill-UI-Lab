@@ -34,6 +34,17 @@
       match: /support|ticket|service|reply|sla|客服|工單|回覆|服務|升級/i
     },
     {
+      key: "finance",
+      label: "金融風控",
+      user: "風控主管 / 稽核人員",
+      task: "交易風險、曝險與合規證據審查",
+      workflow: "approval",
+      risk: "high",
+      density: "high",
+      dataTypes: ["Transaction", "Exposure", "Rule", "Audit"],
+      match: /finance|bank|trading|transaction|revenue|cost|audit|risk|金融|銀行|交易|曝險|營收|成本|稽核|風控/i
+    },
+    {
       key: "esg",
       label: "ESG / 合規治理",
       user: "永續管理 / 稽核人員",

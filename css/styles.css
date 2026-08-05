@@ -4,8 +4,8 @@
   --color-bg-ink: #111111;
   --text-primary: #111111;
   --text-secondary: #636363;
-  --brand-primary: #111111;
-  --brand-secondary: #23237b;
+  --brand-primary: #33413e;
+  --brand-secondary: #4e8f72;
   --line-soft: #dedbd2;
   --line-strong: #111111;
   --risk: #ca0729;
@@ -1772,8 +1772,8 @@ body {
   --text-primary: #0f172a;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
-  --brand-primary: #0f172a;
-  --brand-secondary: #23757f;
+  --brand-primary: #33413e;
+  --brand-secondary: #97d0b7;
   --line-soft: #e2e8f0;
   --line-strong: #0f172a;
   --risk: #ef4444;
@@ -1816,8 +1816,8 @@ select {
 }
 
 .btn-dark {
-  background-color: var(--color-bg-ink);
-  border-color: var(--color-bg-ink);
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
 }
 
 .btn-dark:hover {
@@ -1866,7 +1866,7 @@ select {
   justify-content: space-between;
   gap: 20px;
   padding: 0 0 20px;
-  border-bottom: 2px solid var(--color-bg-ink);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .lab-topbar h1 {
@@ -1874,7 +1874,7 @@ select {
   font-size: clamp(1.8rem, 2.5vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
+  color: var(--line-soft);
 }
 
 .eyebrow {
@@ -2128,7 +2128,7 @@ select {
 }
 
 .viewport-switch button.active {
-  background: var(--color-bg-ink);
+  background: var(--brand-primary);
   color: #fff;
   font-weight: 600;
 }
@@ -2462,6 +2462,7 @@ select {
 .history-card.active {
   border-color: var(--color-bg-ink);
   box-shadow: 4px 4px 0 var(--eden-green);
+  background-color: #eaf2f8;
 }
 
 .history-card-top {

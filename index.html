@@ -14,6 +14,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="./css/styles.css">
   <link rel="stylesheet" href="./css/sprint-1-polish.css">
+  <link rel="stylesheet" href="./css/sprint-2-verification.css">
   <!-- <link rel="stylesheet" href="./css/styles-eden--dark.css"> -->
 </head>
 
@@ -22,16 +23,102 @@
     <header class="lab-topbar">
       <div>
         <p class="eyebrow mb-1">Eden Design Lab / AI Skill Experiment</p>
-        <h1>Skill UI Lab</h1>
+        <div class="lab-title-row">
+          <h1>Skill UI Lab</h1>
+          <button class="verification-info-button" id="verificationInfoButton" type="button" data-bs-toggle="modal"
+            data-bs-target="#verificationInfoModal" aria-label="查看這個頁面在做什麼" title="查看這個頁面在做什麼">i</button>
+        </div>
       </div>
       <div class="topbar-actions">
-        <span class="status-pill"><span class="status-dot"></span>Prototype v0.1</span>
+        <div class="skill-verification-bar" aria-label="Skill Verification 狀態">
+          <div class="skill-verification-name">
+            <span>Active Skill</span>
+            <strong id="verificationSkillName">company-design</strong>
+          </div>
+          <div class="verification-step complete" id="topImportStatus">
+            <span>01 Import</span>
+            <strong>Complete</strong>
+          </div>
+          <div class="verification-step warning" id="topParseStatus">
+            <span>02 Parse</span>
+            <strong>Warning</strong>
+          </div>
+          <div class="verification-step active" id="topApplyStatus">
+            <span>03 Apply</span>
+            <strong id="topApplyCount">9 / 14</strong>
+          </div>
+          <div class="verification-issues" id="topIssueCount">Issues 2</div>
+        </div>
         <button class="btn btn-dark btn-sm" id="runTopButton" type="button">執行測試</button>
       </div>
     </header>
 
     <main class="lab-grid">
       <aside class="source-panel" aria-label="Skill 與 Reference">
+        <section class="panel-block source-explorer-panel" aria-labelledby="sourceExplorerTitle"
+          data-default-collapsed="true">
+          <div class="section-heading">
+            <span>Sources</span>
+            <h2 id="sourceExplorerTitle">來源管理</h2>
+          </div>
+          <div class="source-file-list" id="sourceFileList" aria-label="已匯入來源">
+            <button class="source-file-item active" type="button" data-source-key="skill">
+              <span class="source-file-dot complete"></span>
+              <div>
+                <strong>SKILL.md</strong>
+                <small><b id="sourceSkillRuleCount">4 Rules</b> / <span id="sourceSkillParseState">已解析</span></small>
+              </div>
+            </button>
+            <button class="source-file-item" type="button" data-source-key="design">
+              <span class="source-file-dot complete"></span>
+              <div>
+                <strong>DESIGN.md</strong>
+                <small><b id="sourceDesignTokenCount">5 Tokens</b> / <span
+                    id="sourceDesignParseState">已解析</span></small>
+              </div>
+            </button>
+            <button class="source-file-item" type="button" data-source-key="references">
+              <span class="source-file-dot warning"></span>
+              <div>
+                <strong>References</strong>
+                <small><b id="sourceReferenceCount">2 Files</b> / <span
+                    id="sourceReferenceParseState">已讀取</span></small>
+              </div>
+            </button>
+          </div>
+
+          <div class="parsed-summary-panel" aria-label="解析摘要">
+            <div class="context-block-title">
+              <span>Parsed Summary</span>
+              <strong id="parsedSummaryState">2 warnings</strong>
+            </div>
+            <div class="parsed-summary-grid">
+              <div><span>Structure</span><strong id="parsedStructureCount">1</strong></div>
+              <div><span>Rules</span><strong id="parsedRuleCount">4</strong></div>
+              <div><span>Tokens</span><strong id="parsedTokenCount">5</strong></div>
+              <div><span>References</span><strong id="parsedReferenceCount">2</strong></div>
+            </div>
+            <div class="parsing-warning-list" id="parsingWarningList" aria-live="polite"></div>
+          </div>
+
+          <div class="source-detail-panel" aria-label="來源詳情">
+            <div class="source-detail-head">
+              <div>
+                <span>Selected Source</span>
+                <strong id="sourceDetailTitle">SKILL.md</strong>
+              </div>
+              <button class="source-open-button" id="sourceOpenButton" type="button">Open Raw</button>
+            </div>
+            <div class="source-detail-tabs" role="tablist" aria-label="來源檢視切換">
+              <button class="active" type="button" data-source-detail-tab="raw" aria-selected="true">Raw</button>
+              <button type="button" data-source-detail-tab="parsed" aria-selected="false">Parsed</button>
+              <button type="button" data-source-detail-tab="outline" aria-selected="false">Outline</button>
+              <button type="button" data-source-detail-tab="warning" aria-selected="false">Warning</button>
+            </div>
+            <div class="source-detail-content" id="sourceDetailContent" aria-live="polite"></div>
+          </div>
+        </section>
+
         <section class="panel-block skill-profile-panel" aria-labelledby="skillProfileTitle">
           <div class="section-heading">
             <span>00</span>
@@ -98,7 +185,7 @@
           </div>
           <div class="context-tabs" role="tablist" aria-label="SKILL.md 檢視切換">
             <button class="active" type="button" data-skill-tab="source" role="tab" aria-selected="true">Source</button>
-            <button type="button" data-skill-tab="ai" role="tab" aria-selected="false">AI View</button>
+            <button type="button" data-skill-tab="ai" role="tab" aria-selected="false">Parsed</button>
           </div>
           <label class="form-label" for="skillFile">匯入 SKILL.md</label>
           <input class="form-control form-control-sm" id="skillFile" type="file" accept=".md,.txt">
@@ -189,7 +276,7 @@ description: 建立專業、可掃描的 AI agent dashboard。
           <div class="context-tabs" role="tablist" aria-label="DESIGN.md 檢視切換">
             <button class="active" type="button" data-design-tab="source" role="tab"
               aria-selected="true">Source</button>
-            <button type="button" data-design-tab="ai" role="tab" aria-selected="false">AI View</button>
+            <button type="button" data-design-tab="ai" role="tab" aria-selected="false">Parsed</button>
           </div>
           <label class="form-label" for="designFile">匯入設計檔案</label>
           <input class="form-control form-control-sm" id="designFile" type="file">
@@ -199,8 +286,8 @@ description: 建立專業、可掃描的 AI agent dashboard。
             <textarea class="form-control lab-textarea small" id="designText" rows="6">---
 name: Eden Skill Lab
 colors:
-  primary: "#111111"
-  secondary: "#23237B"
+  primary: "#8d89cf"
+  secondary: "#626564"
 radius:
   card: 8px
 density: compact
@@ -230,10 +317,10 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <span id="designUpdateState" aria-live="polite">尚未更新</span>
           </div>
           <div class="token-preview mt-3" id="tokenPreview">
-            <div><span id="primarySwatch" style="--swatch:#111111"></span><strong>Primary</strong><small
-                id="primaryToken">#111111</small></div>
-            <div><span id="secondarySwatch" style="--swatch:#23237B"></span><strong>Sovereign</strong><small
-                id="secondaryToken">#23237B</small></div>
+            <div><span id="primarySwatch" style="--swatch:#013015"></span><strong>Primary</strong><small
+                id="primaryToken">#013015</small></div>
+            <div><span id="secondarySwatch" style="--swatch:#510371"></span><strong>Brand Color</strong><small
+                id="secondaryToken">#510371</small></div>
             <div><span id="canvasSwatch" style="--swatch:#F9FBFF"></span><strong>Canvas</strong><small
                 id="canvasToken">#F9FBFF</small></div>
           </div>
@@ -245,20 +332,16 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
         <div class="stage-toolbar">
           <div>
             <p class="eyebrow mb-1">Generated UI Preview</p>
-            <h2 id="previewTitle">AI Agent Dashboard 預覽</h2>
-          </div>
-          <div class="viewport-switch" role="group" aria-label="預覽尺寸">
-            <button class="active" type="button" data-viewport="desktop">Desktop</button>
-            <button type="button" data-viewport="tablet">Tablet</button>
-            <button type="button" data-viewport="mobile">Mobile</button>
+            <h2 id="previewTitle">從規則文件到 UI 的追蹤</h2>
+            <small>SKILL.md、DESIGN.md 與 Reference 如何影響目前 Preview</small>
           </div>
         </div>
 
         <div class="prompt-console preview-input-console">
           <div class="try-skill-header">
             <div>
-              <label class="form-label" for="testPrompt">Try Skill 輸入</label>
-              <p>輸入需求後只做本次試跑，不保存內容。</p>
+              <label class="form-label" for="testPrompt">請輸入 Prompt</label>
+              <!-- <p>輸入需求後只做本次試跑，不保存內容。</p> -->
             </div>
             <span id="trySkillStatus">尚未試跑</span>
           </div>
@@ -275,8 +358,8 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
           </div>
           <div class="history-console">
             <div class="section-heading mb-2">
-              <span>History</span>
               <h2>生成紀錄</h2>
+              <span>History</span>
             </div>
             <div class="generation-diff" id="generationDiff" aria-live="polite"></div>
             <div class="history-list" id="historyList" aria-live="polite">
@@ -292,9 +375,51 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <span id="generationStep">解析 Skill 規則與 reference...</span>
           </div>
         </div>
-        <div class="preview-workbench" id="previewWorkbench">
-          <div class="preview-frame desktop" id="previewFrame">
-            <div class="generated-ui balanced" id="generatedUi">
+        <section class="generation-column-card" aria-labelledby="generationColumnTitle">
+          <div class="generation-column-heading">
+            <div>
+              <h2 id="generationColumnTitle">生成列</h2>
+              <small>Preview 畫面 / 生成讀取結果</small>
+            </div>
+          </div>
+          <div class="preview-workbench" id="previewWorkbench">
+            <div class="desktop-generation-controls floating-generation-controls">
+              <div class="section-heading">
+                <!-- <span>Control</span> -->
+                <h2>預覽控制</h2>
+              </div>
+              <label class="form-label d-flex justify-content-between" for="creativityRange">
+                <span>創新度</span>
+                <strong id="creativityValue">52</strong>
+              </label>
+              <input class="form-range" id="creativityRange" type="range" min="0" max="100" value="52">
+              <div class="range-labels">
+                <span>保守</span>
+                <span>平衡</span>
+                <span>探索</span>
+              </div>
+
+              <div class="control-stack mt-3">
+                <label class="form-label d-flex justify-content-between" for="densityRange">
+                  <span>版面密度</span>
+                  <strong id="densityValue">標準</strong>
+                </label>
+                <input class="form-range" id="densityRange" type="range" min="0" max="100" value="52">
+                <div class="range-labels">
+                  <span>緊湊</span>
+                  <span>標準</span>
+                  <span>寬鬆</span>
+                </div>
+              </div>
+              <div class="viewport-switch floating-viewport-switch" role="group" aria-label="預覽尺寸">
+                <button class="active" type="button" data-viewport="desktop">Desktop</button>
+                <button type="button" data-viewport="tablet">Tablet</button>
+                <button type="button" data-viewport="mobile">Mobile</button>
+              </div>
+            </div>
+
+            <div class="preview-frame desktop" id="previewFrame">
+              <div class="generated-ui balanced" id="generatedUi">
               <div class="gen-header">
                 <div>
                   <span class="mini-label">AgentOps</span>
@@ -368,102 +493,73 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
                   </div>
                 </div>
               </div>
+              </div>
             </div>
+
+            <section class="mobile-preview-controls" aria-label="手機預覽生成控制">
+              <div class="mobile-control-heading">
+                <div><span>Preview controls</span><strong>預覽控制</strong></div>
+                <!-- <small>Preview Control</small> -->
+              </div>
+              <div class="mobile-control-grid">
+                <label for="mobileCreativityRange">
+                  <span>創新度</span>
+                  <strong id="mobileCreativityValue">52</strong>
+                </label>
+                <input class="form-range" id="mobileCreativityRange" type="range" min="0" max="100" value="52">
+                <div class="range-labels"><span>保守</span><span>平衡</span><span>探索</span></div>
+              </div>
+              <div class="mobile-control-grid">
+                <label for="mobileDensityRange">
+                  <span>版面密度</span>
+                  <strong id="mobileDensityValue">標準</strong>
+                </label>
+                <input class="form-range" id="mobileDensityRange" type="range" min="0" max="100" value="52">
+                <div class="range-labels"><span>緊湊</span><span>標準</span><span>寬鬆</span></div>
+              </div>
+            </section>
           </div>
 
-          <section class="mobile-preview-controls" aria-label="手機預覽生成控制">
-            <div class="mobile-control-heading">
-              <div><span>Preview controls</span><strong>生成控制</strong></div>
-              <small>直接調整目前預覽</small>
+          <div class="prompt-console preview-output-console">
+            <div class="section-heading generation-result-heading mb-2">
+              <span>Reading Result</span>
+              <h2>生成讀取結果</h2>
             </div>
-            <div class="mobile-control-grid">
-              <label for="mobileCreativityRange">
-                <span>創新度</span>
-                <strong id="mobileCreativityValue">52</strong>
-              </label>
-              <input class="form-range" id="mobileCreativityRange" type="range" min="0" max="100" value="52">
-              <div class="range-labels"><span>保守</span><span>平衡</span><span>探索</span></div>
-            </div>
-            <div class="mobile-control-grid">
-              <label for="mobileDensityRange">
-                <span>版面密度</span>
-                <strong id="mobileDensityValue">標準</strong>
-              </label>
-              <input class="form-range" id="mobileDensityRange" type="range" min="0" max="100" value="52">
-              <div class="range-labels"><span>緊湊</span><span>標準</span><span>寬鬆</span></div>
-            </div>
-          </section>
-        </div>
-
-        <div class="prompt-console preview-output-console">
-          <div class="try-output-grid" aria-live="polite">
-            <article>
-              <span>假的讀取結果</span>
-              <strong id="mockReadResult">已準備讀取 company-design 規則</strong>
-            </article>
-            <article>
-              <span>預估輸出</span>
-              <strong id="mockOutputResult">企業 AI 工作台建議</strong>
-            </article>
-            <article>
-              <span>評分</span>
-              <strong id="mockScoreResult">93 / 100</strong>
-            </article>
-          </div>
-          <div class="trace-map" id="traceMap" aria-live="polite"></div>
-        </div>
-
-        <section class="reading-process" aria-label="AI Reading Process">
-          <div class="reading-process-header">
-            <div>
-              <p class="eyebrow mb-1">AI Reading Process</p>
-              <h3>從規則到畫面的轉譯軌跡</h3>
-            </div>
-            <button class="reading-collapse-button" id="readingCollapseButton" type="button" aria-expanded="true"
-              aria-controls="readingProcessBody" aria-label="縮合從規則到畫面的轉譯軌跡" title="縮合區域">
-              <span aria-hidden="true"></span>
-            </button>
-          </div>
-          <div id="readingProcessBody">
-            <div class="reading-brief" aria-label="本次讀取摘要">
-              <div><span>輸入來源</span><strong id="readingSourceCount">4 份</strong></div>
-              <div><span>規則抽取</span><strong id="readingRuleCount">14 條</strong></div>
-              <div><span>證據連結</span><strong id="readingEvidenceCount">2 組</strong></div>
-              <p id="readingSummary">已辨識企業後台、台灣繁中與流程可視化規則，準備套用至 UI Preview。</p>
-            </div>
-            <div class="reading-flow" id="readingFlow" aria-live="polite">
-              <article class="reading-step complete" data-step="0" tabindex="0">
-                <span>01</span>
-                <strong>讀取 Skill.md</strong>
-                <small>7 條工作規則</small>
+            <div class="try-output-grid" aria-live="polite">
+              <article>
+                <span>假的讀取結果</span>
+                <strong id="mockReadResult">已準備讀取 company-design 規則</strong>
               </article>
-              <article class="reading-step complete" data-step="1" tabindex="0">
-                <span>02</span>
-                <strong>整理 Reference</strong>
-                <small>2 組有效證據</small>
+              <article>
+                <span>預估輸出</span>
+                <strong id="mockOutputResult">企業 AI 工作台建議</strong>
               </article>
-              <article class="reading-step active" data-step="2" tabindex="0">
-                <span>03</span>
-                <strong>套用 DESIGN.md</strong>
-                <small>5 個設計條件</small>
-              </article>
-              <article class="reading-step" data-step="3" tabindex="0">
-                <span>04</span>
-                <strong>生成 UI Preview</strong>
-                <small>1 個工作台版本</small>
-              </article>
-              <article class="reading-step" data-step="4" tabindex="0">
-                <span>05</span>
-                <strong>輸出評估</strong>
-                <small>完整度與偏移風險</small>
+              <article>
+                <span>評分</span>
+                <strong id="mockScoreResult">93 / 100</strong>
               </article>
             </div>
+            <div class="trace-map" id="traceMap" aria-live="polite"></div>
           </div>
         </section>
 
-        <section class="planning-console" aria-label="AI UI Planning">
+        <section class="verification-flow main-verification-flow" aria-label="從規則到畫面的驗證流程">
+          <div class="verification-flow-head">
+            <div>
+              <span>Trace Flow</span>
+              <h4>追蹤驗證</h4>
+            </div>
+            <!-- <small id="verificationFlowSummary">套用狀態待建立</small> -->
+          </div>
+          <div class="verification-flow-steps" id="verificationFlowSteps" role="tablist" aria-label="Verification Flow">
+          </div>
+          <div class="verification-flow-detail main-verification-detail" id="verificationFlowDetail" aria-live="polite">
+          </div>
+        </section>
+
+        <section class="planning-console" aria-label="AI 規劃摘要">
           <article class="planning-panel">
-            <div class="context-block-title"><span>AI Context</span><strong id="contextDomain">AI Skill 規劃</strong>
+            <div class="context-block-title"><h4>生成情境</h4><strong id="contextDomain">AI Skill 規劃</strong>
             </div>
             <div class="planning-facts" id="contextFactList" aria-live="polite"></div>
           </article>
@@ -472,7 +568,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <div class="planning-facts" id="planningFactList" aria-live="polite"></div>
           </article> -->
           <article class="planning-panel planning-panel-wide">
-            <div class="context-block-title"><span>Decision</span><strong id="decisionSummary">Rule-based</strong></div>
+            <div class="context-block-title"><h4>版型決策</h4><strong id="decisionSummary">待產生決策</strong></div>
             <div class="decision-list" id="decisionList" aria-live="polite"></div>
           </article>
         </section>
@@ -482,54 +578,98 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
 
       <aside class="control-panel" aria-label="生成控制與評估">
         <section class="panel-block sticky-control">
-          <div class="desktop-generation-controls">
-            <div class="section-heading">
-              <span>04</span>
-              <h2>生成控制</h2>
-            </div>
-            <label class="form-label d-flex justify-content-between" for="creativityRange">
-              <span>創新度</span>
-              <strong id="creativityValue">52</strong>
-            </label>
-            <input class="form-range" id="creativityRange" type="range" min="0" max="100" value="52">
-            <div class="range-labels">
-              <span>保守</span>
-              <span>平衡</span>
-              <span>探索</span>
-            </div>
+          <div class="inspector-tabs" role="tablist" aria-label="Inspector 檢視">
+            <button class="active" type="button" data-inspector-tab="verification"
+              aria-selected="true">Verification</button>
+            <button type="button" data-inspector-tab="evidence" aria-selected="false">Evidence</button>
+            <button type="button" data-inspector-tab="issues" aria-selected="false">Issues</button>
+          </div>
 
-            <div class="control-stack mt-4">
-              <label class="form-label d-flex justify-content-between" for="densityRange">
-                <span>版面密度</span>
-                <strong id="densityValue">標準</strong>
-              </label>
-              <input class="form-range" id="densityRange" type="range" min="0" max="100" value="52">
-              <div class="range-labels">
-                <span>緊湊</span>
-                <span>標準</span>
-                <span>寬鬆</span>
+          <section class="verification-inspector inspector-view active collapsible-control-section"
+            data-inspector-view="verification" aria-label="Skill Verification" data-default-collapsed="false">
+            <div class="section-heading">
+              <span>Inspector</span>
+              <h2>Verification</h2>
+            </div>
+            <div class="verification-stage-list" id="verificationStageList">
+              <article>
+                <span class="check-mark complete">✓</span>
+                <div>
+                  <strong>Import</strong>
+                  <small id="importVerificationText">SKILL.md、DESIGN.md 與 2 組 References 已載入</small>
+                </div>
+              </article>
+              <article>
+                <span class="check-mark warning">△</span>
+                <div>
+                  <strong>Parse</strong>
+                  <small id="parseVerificationText">4 Rules、5 Tokens，2 則需檢查</small>
+                </div>
+              </article>
+              <article>
+                <span class="check-mark active">•</span>
+                <div>
+                  <strong>Application</strong>
+                  <small id="applyVerificationText">9 Applied / 3 Partial / 2 Not applicable</small>
+                </div>
+              </article>
+            </div>
+            <div class="verification-metric-grid">
+              <div>
+                <span>Parsing Coverage</span>
+                <strong id="parsingCoverageMetric">3 / 4</strong>
+              </div>
+              <div>
+                <span>Application Coverage</span>
+                <strong id="applicationCoverageMetric">9 / 12</strong>
+              </div>
+              <div>
+                <span>Preview Compliance</span>
+                <strong id="previewComplianceMetric">11 / 12</strong>
               </div>
             </div>
-          </div>
+          </section>
 
-          <hr>
-
-          <div class="mobile-evaluation-heading">
-            <span>Evaluation</span>
-            <strong>生成評估</strong>
-          </div>
-
-          <div class="score-card">
-            <div>
-              <span>Skill 遵守度</span>
-              <strong id="complianceScore">93</strong>
+          <section class="inspector-view evidence-inspector" data-inspector-view="evidence" hidden
+            aria-label="Evidence">
+            <div class="section-heading">
+              <span>Evidence</span>
+              <h2>Parsed Evidence</h2>
             </div>
-            <div class="progress" role="progressbar" aria-label="Skill 遵守度" aria-valuemin="0" aria-valuemax="100">
-              <div class="progress-bar" id="complianceBar" style="width:93%"></div>
-            </div>
-          </div>
+            <div class="inspector-evidence-list" id="inspectorEvidenceList" aria-live="polite"></div>
+          </section>
 
-          <div class="evaluation-list" id="evaluationList"></div>
+          <section class="inspector-view issues-inspector" data-inspector-view="issues" hidden aria-label="Issues">
+            <div class="section-heading">
+              <span>Issues</span>
+              <h2>Parsing Issues</h2>
+            </div>
+            <div class="inspector-issue-list" id="inspectorIssueList" aria-live="polite"></div>
+          </section>
+
+          <section class="score-collapsible-section collapsible-control-section" data-default-collapsed="true">
+            <div class="section-heading">
+              <span>Score</span>
+              <h2>Skill 遵守度</h2>
+            </div>
+            <div class="score-card">
+              <div>
+                <span>Skill 遵守度</span>
+                <strong id="complianceScore">93</strong>
+              </div>
+              <div class="progress" role="progressbar" aria-label="Skill 遵守度" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" id="complianceBar" style="width:93%"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="evaluation-collapsible-section collapsible-control-section" data-default-collapsed="true">
+            <div class="section-heading">
+              <span>Evaluation</span>
+              <h2>生成評估</h2>
+            </div>
+            <div class="evaluation-list" id="evaluationList"></div>
+          </section>
 
           <div class="evidence-panel">
             <div class="section-heading">
@@ -567,6 +707,75 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div class="toast lab-toast" id="labToast" role="status" aria-live="polite" aria-atomic="true">
       <div class="toast-body">已更新 UI 預覽與評估結果。</div>
+    </div>
+  </div>
+
+  <div class="modal fade verification-info-modal" id="verificationInfoModal" tabindex="-1"
+    aria-labelledby="verificationInfoModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow mb-1">Skill UI Lab Method</p>
+            <h2 class="modal-title" id="verificationInfoModalTitle">這個頁面在做什麼</h2>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <section class="page-method-intro" aria-label="頁面說明">
+            <p>這個工作台用來驗證 SKILL.md、DESIGN.md 與 References 是否被正確匯入、解析，並用本地 parser 產生可檢查的 Preview 狀態。</p>
+            <div>
+              <article><span>01</span><strong>Import</strong><small>確認來源內容是否載入。</small></article>
+              <article><span>02</span><strong>Parse</strong><small>抽取規則、tokens、reference 與 warning。</small></article>
+              <article><span>03</span><strong>Apply</strong><small>以目前規則狀態驅動 Preview 與驗證摘要。</small></article>
+            </div>
+          </section>
+
+          <section class="reading-process modal-reading-process" aria-label="AI Reading Process">
+            <div class="reading-process-header">
+              <div>
+                <p class="eyebrow mb-1">AI Reading Process</p>
+                <h3>從規則到畫面的轉譯軌跡</h3>
+              </div>
+            </div>
+            <div id="readingProcessBody">
+              <div class="reading-brief" aria-label="本次讀取摘要">
+                <div><span>輸入來源</span><strong id="readingSourceCount">4 份</strong></div>
+                <div><span>規則抽取</span><strong id="readingRuleCount">14 條</strong></div>
+                <div><span>證據連結</span><strong id="readingEvidenceCount">2 組</strong></div>
+                <p id="readingSummary">已辨識企業後台、台灣繁中與流程可視化規則，準備套用至 UI Preview。</p>
+              </div>
+              <div class="reading-flow" id="readingFlow" aria-live="polite">
+                <article class="reading-step complete" data-step="0" tabindex="0">
+                  <span>01</span>
+                  <strong>讀取 Skill.md</strong>
+                  <small>7 條工作規則</small>
+                </article>
+                <article class="reading-step complete" data-step="1" tabindex="0">
+                  <span>02</span>
+                  <strong>整理 Reference</strong>
+                  <small>2 組有效證據</small>
+                </article>
+                <article class="reading-step active" data-step="2" tabindex="0">
+                  <span>03</span>
+                  <strong>套用 DESIGN.md</strong>
+                  <small>5 個設計條件</small>
+                </article>
+                <article class="reading-step" data-step="3" tabindex="0">
+                  <span>04</span>
+                  <strong>生成 UI Preview</strong>
+                  <small>1 個工作台版本</small>
+                </article>
+                <article class="reading-step" data-step="4" tabindex="0">
+                  <span>05</span>
+                  <strong>輸出評估</strong>
+                  <small>完整度與偏移風險</small>
+                </article>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   </div>
 

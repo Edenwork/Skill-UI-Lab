@@ -80,7 +80,43 @@ const referenceMentionCount = document.querySelector("#referenceMentionCount");
 const skillParsedReferences = document.querySelector("#skillParsedReferences");
 const profileRuleCount = document.querySelector("#profileRuleCount");
 const profileReferenceCount = document.querySelector("#profileReferenceCount");
+const sourceSkillRuleCount = document.querySelector("#sourceSkillRuleCount");
+const sourceSkillParseState = document.querySelector("#sourceSkillParseState");
+const sourceDesignTokenCount = document.querySelector("#sourceDesignTokenCount");
+const sourceDesignParseState = document.querySelector("#sourceDesignParseState");
+const sourceReferenceCount = document.querySelector("#sourceReferenceCount");
+const sourceReferenceParseState = document.querySelector("#sourceReferenceParseState");
+const parsedSummaryState = document.querySelector("#parsedSummaryState");
+const parsedStructureCount = document.querySelector("#parsedStructureCount");
+const parsedRuleCount = document.querySelector("#parsedRuleCount");
+const parsedTokenCount = document.querySelector("#parsedTokenCount");
+const parsedReferenceCount = document.querySelector("#parsedReferenceCount");
+const parsingWarningList = document.querySelector("#parsingWarningList");
+const sourceDetailTitle = document.querySelector("#sourceDetailTitle");
+const sourceDetailContent = document.querySelector("#sourceDetailContent");
+const sourceOpenButton = document.querySelector("#sourceOpenButton");
+const sourceDetailTabs = [...document.querySelectorAll("[data-source-detail-tab]")];
+const sourceFileItems = [...document.querySelectorAll("[data-source-key]")];
+const topImportStatus = document.querySelector("#topImportStatus");
+const topParseStatus = document.querySelector("#topParseStatus");
+const topApplyStatus = document.querySelector("#topApplyStatus");
+const topApplyCount = document.querySelector("#topApplyCount");
+const topIssueCount = document.querySelector("#topIssueCount");
+const importVerificationText = document.querySelector("#importVerificationText");
+const parseVerificationText = document.querySelector("#parseVerificationText");
+const applyVerificationText = document.querySelector("#applyVerificationText");
+const parsingCoverageMetric = document.querySelector("#parsingCoverageMetric");
+const applicationCoverageMetric = document.querySelector("#applicationCoverageMetric");
+const previewComplianceMetric = document.querySelector("#previewComplianceMetric");
+const verificationFlowSummary = document.querySelector("#verificationFlowSummary");
+const verificationFlowSteps = document.querySelector("#verificationFlowSteps");
+const verificationFlowDetail = document.querySelector("#verificationFlowDetail");
+const inspectorTabs = [...document.querySelectorAll("[data-inspector-tab]")];
+const inspectorViews = [...document.querySelectorAll("[data-inspector-view]")];
+const inspectorEvidenceList = document.querySelector("#inspectorEvidenceList");
+const inspectorIssueList = document.querySelector("#inspectorIssueList");
 const testPrompt = document.querySelector("#testPrompt");
+const promptShortcutButtons = [...document.querySelectorAll("[data-prompt-template]")];
 const trySkillStatus = document.querySelector("#trySkillStatus");
 const mockReadResult = document.querySelector("#mockReadResult");
 const mockOutputResult = document.querySelector("#mockOutputResult");
@@ -110,8 +146,20 @@ let activeDesignTokens = {
   radius: 8,
   density: "compact"
 };
+let designApplyCount = 0;
+let appliedDesignText = designText?.value || "";
+let activeSourceKey = "skill";
+let activeSourceDetailTab = "raw";
+let activeVerificationStep = "apply";
 const generationHistory = [];
 const referenceImages = new Map();
+
+const promptTemplates = {
+  medical: "建立一個醫療照護 AI agent 工作台，讓藥師審查病患用藥、交互作用、臨床證據與覆核決策，需呈現高風險警示、照護路徑與證據引用。",
+  security: "建立一個資安事件調查 AI agent 工作台，讓資安分析師追蹤事件影響路徑、資產風險、政策命中與處置決策，需呈現證據鏈與告警優先級。",
+  finance: "建立一個金融風控 AI agent 工作台，讓風控主管審查交易異常、曝險比對、稽核證據與核准條件，需符合高密度後台、風險矩陣與合規追溯。",
+  support: "建立一個客服營運 AI agent 工作台，讓客服主管管理工單分流、SLA 風險、對話摘要與 AI 回覆草稿，需保留佇列、優先級與回覆審查。"
+};
 
 const uiVariants = [
   {
@@ -436,7 +484,7 @@ function contextScoreAdjustment(context) {
 
 function parseDesignTokens(text) {
   const readHex = (key, fallback) => {
-    const pattern = new RegExp(`${key}\\s*:\\s*["']?(#[0-9a-fA-F]{3,6})["']?`, "i");
+    const pattern = new RegExp(`(?:${key})\\s*:\\s*["']?(#[0-9a-fA-F]{3,6})["']?`, "i");
     return text.match(pattern)?.[1] || fallback;
   };
   const radiusMatch = text.match(/card\s*:\s*([0-9]{1,2})px/i);
@@ -449,6 +497,30 @@ function parseDesignTokens(text) {
     radius: radiusMatch ? Math.max(4, Math.min(16, Number(radiusMatch[1]))) : activeDesignTokens.radius,
     density: densityMatch ? densityMatch[1].toLowerCase() : activeDesignTokens.density
   };
+}
+
+function parseDesignPresentation(text, tokens = parseDesignTokens(text)) {
+  const source = text.toLowerCase();
+  const matches = (pattern) => pattern.test(source);
+  let key = "flow";
+
+  if (matches(/audit|ledger|table|review|dense|稽核|台帳|表格|審查|高密度/)) key = "ledger";
+  if (matches(/command|control|monitor|console|dark|控制|監控|指揮|控制台|深色/)) key = "command";
+  if (matches(/canvas workspace|spatial canvas|spatial|map|experimental|creative|studio|畫布|空間|探索|創意|實驗/)) key = "studio";
+  if (matches(/flow|path|stage|journey|pipeline|流程|路徑|階段|旅程/)) key = "flow";
+
+  if (!matches(/canvas workspace|spatial canvas|spatial|map|experimental|creative|studio|畫布|空間|探索|創意|實驗|audit|ledger|table|review|dense|稽核|台帳|表格|審查|高密度|command|control|monitor|console|dark|控制|監控|指揮|控制台|深色|flow|path|stage|journey|pipeline|流程|路徑|階段|旅程/)) {
+    key = tokens.density === "comfortable" ? "studio" : tokens.density === "compact" ? "ledger" : "flow";
+  }
+
+  const profiles = {
+    flow: { label: "流程導向", note: "以連續階段、狀態轉換與決策節點建立閱讀路徑。" },
+    ledger: { label: "審查台帳", note: "提高資訊密度，強調規則、證據與覆核順序。" },
+    studio: { label: "設計工作室", note: "放大主要工作物件，使用更開放的節奏呈現探索關係。" },
+    command: { label: "控制中心", note: "以高對比狀態面與監控訊號凸顯即時決策。" }
+  };
+
+  return { key, ...profiles[key] };
 }
 
 function parseDesignSummary(text) {
@@ -570,11 +642,7 @@ function renderDesignSummary() {
 
 function applyDesignTokens(tokens, options = {}) {
   activeDesignTokens = tokens;
-  generatedUi.style.setProperty("--preview-primary", tokens.primary);
-  generatedUi.style.setProperty("--preview-secondary", tokens.secondary);
-  generatedUi.style.setProperty("--preview-canvas", tokens.canvas);
-  generatedUi.style.setProperty("--preview-radius", `${tokens.radius}px`);
-  previewFrame.style.setProperty("--preview-canvas", tokens.canvas);
+  syncPreviewTokenVars(tokens);
   previewFrame.classList.add("design-live");
 
   primarySwatch.style.setProperty("--swatch", tokens.primary);
@@ -592,7 +660,45 @@ function applyDesignTokens(tokens, options = {}) {
 
   designUpdateState.textContent = options.initial ? "已套用預設值" : "已更新預覽";
   designHelper.textContent = `目前套用：主色 ${tokens.primary}、強調色 ${tokens.secondary}、圓角 ${tokens.radius}px、密度 ${tokens.density}。`;
-  refreshPreviewFromControls();
+  if (options.refresh) refreshPreviewFromControls();
+}
+
+function syncPreviewTokenVars(tokens = activeDesignTokens) {
+  const targets = [
+    generatedUi,
+    previewFrame,
+    ...generatedUi.querySelectorAll(".planned-preview-shell")
+  ].filter(Boolean);
+  targets.forEach((target) => {
+    target.style.setProperty("--preview-primary", tokens.primary);
+    target.style.setProperty("--preview-secondary", tokens.secondary);
+    target.style.setProperty("--preview-canvas", tokens.canvas);
+    target.style.setProperty("--preview-radius", `${tokens.radius}px`);
+  });
+}
+
+function applyDesignPreviewUpdate() {
+  appliedDesignText = designText.value;
+  const tokens = parseDesignTokens(appliedDesignText);
+  designApplyCount += 1;
+  renderDesignSummary();
+  applyDesignTokens(tokens, { refresh: false });
+
+  const modeKey = modeFromValue(Number(creativityRange.value));
+  const snapshot = buildSnapshot(chooseVariant(modeKey), modeKey, {
+    id: Date.now(),
+    seed: generationCount
+  });
+  renderEvaluation(modeKey);
+  applySnapshot(snapshot);
+  renderDensity();
+  previewFrame.classList.remove("design-refreshing");
+  void previewFrame.offsetWidth;
+  previewFrame.classList.add("design-refreshing");
+  window.setTimeout(() => previewFrame.classList.remove("design-refreshing"), 520);
+
+  if (designImportState) designImportState.textContent = "設計內容已套用至目前預覽。";
+  if (designUpdateState) designUpdateState.textContent = `已依 DESIGN.md 重建預覽 v${designApplyCount}`;
 }
 
 function parseSkillContext(text) {
@@ -686,6 +792,405 @@ function renderSkillAiView() {
   skillParsedReferences.innerHTML = parsed.references.length
     ? parsed.references.slice(0, 8).map((item) => `<button type="button">${item}</button>`).join("")
     : '<div class="parsed-empty">尚未偵測到 reference 檔案。</div>';
+  updateVerificationStatus();
+}
+
+function parseVerificationWarnings(skill, design, active) {
+  const warnings = [];
+  if (!skillText.value.trim()) warnings.push(["SKILL.md", "尚未載入內容，無法抽取規則。"]);
+  if (!designText.value.trim()) warnings.push(["DESIGN.md", "尚未載入內容，無法抽取設計 tokens。"]);
+  if (skill.bullets.length === 0) warnings.push(["Rules", "未偵測到條列規則，Parsed View 只能顯示文件結構。"]);
+  if (skill.headings.length <= 1 && !/^#\s+/m.test(skillText.value)) warnings.push(["Structure", "文件標題層級不足，建議補上 Workflow、Rules 或 References。"]);
+  if (design.cards.filter((card) => !/預設|基本/.test(card.title)).length < 3) warnings.push(["Tokens", "DESIGN.md 可解析 token 偏少，Preview 套用證據會較弱。"]);
+  if (active.length === 0) warnings.push(["References", "尚未選取 reference，證據來源只剩 SKILL.md 與 DESIGN.md。"]);
+  return warnings.slice(0, 4);
+}
+
+function markdownLineItems(text) {
+  let inFrontmatter = false;
+  return text.split(/\r?\n/).map((line, index) => {
+    const trimmed = line.trim();
+    if (index === 0 && trimmed === "---") inFrontmatter = true;
+    const item = {
+      line: index + 1,
+      raw: line,
+      text: trimmed,
+      kind: "unrecognized",
+      section: "Root"
+    };
+    if (!trimmed) item.kind = "blank";
+    else if (trimmed === "---") item.kind = "frontmatter";
+    else if (inFrontmatter && /^[\w.-]+\s*:/.test(trimmed)) item.kind = "metadata";
+    else if (/^#{1,6}\s+/.test(trimmed)) item.kind = "heading";
+    else if (/^[-*]\s+/.test(trimmed)) item.kind = "rule";
+    else if (/^\|.+\|$/.test(trimmed)) item.kind = "table";
+    else if (/^```/.test(trimmed)) item.kind = "code";
+    else if (/^\[.+\]\(.+\)/.test(trimmed) || /\((references\/[^)]+)\)/.test(trimmed)) item.kind = "reference";
+    else if (/^[A-Z0-9_-]+:/i.test(trimmed)) item.kind = "property";
+    if (index > 0 && trimmed === "---") inFrontmatter = false;
+    return item;
+  });
+}
+
+function buildSkillRuleLedger(text) {
+  let currentHeading = "Root";
+  return markdownLineItems(text).flatMap((item) => {
+    if (item.kind === "heading") {
+      currentHeading = item.text.replace(/^#{1,6}\s+/, "");
+      return [];
+    }
+    if (item.kind !== "rule") return [];
+    const ruleText = item.text.replace(/^[-*]\s+/, "");
+    const lower = ruleText.toLowerCase();
+    const category = /color|token|visual|設計|色彩|圓角|字體/.test(lower) ? "Design"
+      : /layout|workspace|dashboard|版型|工作台|畫面/.test(lower) ? "Layout"
+        : /reference|evidence|source|參考|證據/.test(lower) ? "Evidence"
+          : /do not|avoid|never|不要|避免|禁止/.test(lower) ? "Constraint"
+            : "Workflow";
+    const target = /sidebar|left|左欄|source/i.test(ruleText) ? "Sources"
+      : /preview|生成|畫面|workspace/i.test(ruleText) ? "Workspace"
+        : /inspector|evidence|risk|驗證|檢查/i.test(ruleText) ? "Inspector"
+          : "Global";
+    return [{
+      id: `Rule ${String(item.line).padStart(2, "0")}`,
+      type: category,
+      target,
+      constraint: ruleText,
+      source: `SKILL.md L${item.line}`,
+      section: currentHeading
+    }];
+  });
+}
+
+function buildDesignTokenLedger(text) {
+  const tokens = parseDesignTokens(text);
+  const tokenRows = [
+    ["color.primary", tokens.primary, "Primary brand"],
+    ["color.secondary", tokens.secondary, "Sovereign emphasis"],
+    ["color.canvas", tokens.canvas, "Content background"],
+    ["radius.card", `${tokens.radius}px`, "Card radius"],
+    ["density", tokens.density, "Workspace density"]
+  ];
+  return tokenRows.map(([name, value, role]) => {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = text.split(/\r?\n/).findIndex((line) => new RegExp(escaped.split(".").pop(), "i").test(line));
+    return { name, value, role, source: `DESIGN.md L${Math.max(1, match + 1)}` };
+  });
+}
+
+function buildUnrecognizedItems(text, fileName) {
+  return markdownLineItems(text)
+    .filter((item) => item.text && item.kind === "unrecognized")
+    .slice(0, 8)
+    .map((item) => ({
+      title: `${fileName} L${item.line}`,
+      note: item.text.length > 92 ? `${item.text.slice(0, 92)}...` : item.text
+    }));
+}
+
+function currentSourceModel() {
+  const skill = parseSkillContext(skillText.value);
+  const design = parseDesignUnderstanding(designText.value);
+  const active = activeReferences();
+  const warnings = parseVerificationWarnings(skill, design, active);
+  return {
+    skill,
+    design,
+    active,
+    warnings,
+    skillRules: buildSkillRuleLedger(skillText.value),
+    designTokens: buildDesignTokenLedger(designText.value),
+    skillUnknown: buildUnrecognizedItems(skillText.value, "SKILL.md"),
+    designUnknown: buildUnrecognizedItems(designText.value, "DESIGN.md")
+  };
+}
+
+function sourceModelForKey(key) {
+  const model = currentSourceModel();
+  if (key === "design") {
+    return {
+      title: "DESIGN.md",
+      raw: designText.value,
+      parsed: model.designTokens.map((item) => ({
+        title: item.name,
+        meta: `${item.value} / ${item.role}`,
+        source: item.source
+      })),
+      outline: model.design.cards.map((card) => ({
+        title: card.label,
+        meta: card.title,
+        source: "DESIGN.md parser"
+      })),
+      warnings: model.warnings.filter(([label]) => ["DESIGN.md", "Tokens"].includes(label)).concat(model.designUnknown.map((item) => [item.title, item.note]))
+    };
+  }
+  if (key === "references") {
+    return {
+      title: "References",
+      raw: model.active.map((item) => `${item.kind}: ${item.name}`).join("\n") || "尚未選取 reference。",
+      parsed: model.active.map((item, index) => ({
+        title: item.name,
+        meta: `${item.kind} / ${item.type}`,
+        source: `Reference ${String(index + 1).padStart(2, "0")}`
+      })),
+      outline: model.active.map((item) => ({ title: item.kind, meta: item.name, source: item.type })),
+      warnings: model.warnings.filter(([label]) => label === "References")
+    };
+  }
+  return {
+    title: "SKILL.md",
+    raw: skillText.value,
+    parsed: model.skillRules.map((item) => ({
+      title: item.id,
+      meta: `${item.type} / ${item.target}`,
+      source: `${item.source} / ${item.constraint}`
+    })),
+    outline: model.skill.sections.map((section) => ({
+      title: section.heading,
+      meta: `${section.items.length} items`,
+      source: "SKILL.md outline"
+    })),
+    warnings: model.warnings.filter(([label]) => ["SKILL.md", "Rules", "Structure"].includes(label)).concat(model.skillUnknown.map((item) => [item.title, item.note]))
+  };
+}
+
+function detailListMarkup(items, emptyText) {
+  if (!items.length) return `<div class="source-detail-empty">${escapeHtml(emptyText)}</div>`;
+  return items.map((item) => `
+    <article>
+      <strong>${escapeHtml(item.title)}</strong>
+      <span>${escapeHtml(item.meta || "")}</span>
+      <small>${escapeHtml(item.source || "")}</small>
+    </article>
+  `).join("");
+}
+
+function renderSourceDetail() {
+  if (!sourceDetailContent || !sourceDetailTitle) return;
+  const source = sourceModelForKey(activeSourceKey);
+  sourceDetailTitle.textContent = source.title;
+  if (sourceOpenButton) sourceOpenButton.textContent = activeSourceKey === "references" ? "Open Sources" : "Open Raw";
+  if (activeSourceDetailTab === "raw") {
+    sourceDetailContent.innerHTML = `<pre>${escapeHtml(source.raw || "尚未載入內容。")}</pre>`;
+    return;
+  }
+  if (activeSourceDetailTab === "parsed") {
+    sourceDetailContent.innerHTML = `<div class="source-detail-ledger">${detailListMarkup(source.parsed, "目前沒有可顯示的 Parsed 資料。")}</div>`;
+    return;
+  }
+  if (activeSourceDetailTab === "outline") {
+    sourceDetailContent.innerHTML = `<div class="source-detail-ledger">${detailListMarkup(source.outline, "目前沒有可顯示的 Outline。")}</div>`;
+    return;
+  }
+  const warnings = source.warnings.map(([title, note]) => ({ title, meta: note, source: "Parser warning" }));
+  sourceDetailContent.innerHTML = `<div class="source-detail-ledger warning">${detailListMarkup(warnings, "此來源目前沒有 parsing warning。")}</div>`;
+}
+
+function renderInspectorPanels(snapshot = currentSnapshot) {
+  const model = currentSourceModel();
+  if (inspectorEvidenceList) {
+    const rows = [
+      ...model.skillRules.slice(0, 4).map((item) => ({ title: item.id, meta: item.constraint, source: item.source })),
+      ...model.designTokens.slice(0, 4).map((item) => ({ title: item.name, meta: item.value, source: item.source })),
+      ...model.active.slice(0, 3).map((item, index) => ({ title: item.name, meta: item.kind, source: `Reference ${index + 1}` }))
+    ];
+    inspectorEvidenceList.innerHTML = detailListMarkup(rows, "尚未建立可追溯 evidence。");
+  }
+  if (inspectorIssueList) {
+    const warnings = model.warnings.map(([title, note]) => ({ title, meta: note, source: "Parsing warning" }));
+    const unknown = [...model.skillUnknown, ...model.designUnknown].map((item) => ({ title: item.title, meta: item.note, source: "Unrecognized content" }));
+    inspectorIssueList.innerHTML = detailListMarkup([...warnings, ...unknown], "目前沒有 parsing issue 或未辨識內容。");
+  }
+  renderSourceDetail();
+}
+
+function setVerificationStepState(element, state, label) {
+  if (!element) return;
+  element.classList.remove("complete", "warning", "active");
+  element.classList.add(state);
+  const strong = element.querySelector("strong");
+  if (strong) strong.textContent = label;
+}
+
+function buildVerificationFlow({ skill, design, active, warnings, tokenCount, appliedRules, partialRules, applicableRules, ruleTotal, previewPassed, previewChecks, snapshot }) {
+  const referenceNames = active.map((item) => item.name || item.text || String(item)).filter(Boolean);
+  const designSignals = design.cards.filter((card) => !/預設|基本/.test(card.title)).map((card) => card.label);
+  const widgets = snapshot?.plan?.widgets?.map((item) => window.SkillPlanningLab.widgetTitle(item)) || ["Preview", "Verification", "Evaluation"];
+  const appliedText = `${appliedRules} 已套用 / ${partialRules} 部分套用 / ${Math.max(0, ruleTotal - applicableRules)} 不適用`;
+  const warningText = warnings.length ? `${warnings.length} 則待確認` : "無待確認";
+
+  return [
+    {
+      key: "import",
+      index: "01",
+      title: "讀取來源",
+      status: active.length || skill.bullets.length || tokenCount ? "complete" : "warning",
+      metric: `${[skillText.value.trim(), designText.value.trim(), active.length].filter(Boolean).length} 份`,
+      summary: `已載入 SKILL.md、DESIGN.md 與 ${active.length} 組 Reference。`,
+      detailTitle: "輸入來源",
+      details: [
+        ["SKILL.md", `${skill.bullets.length} 條工作規則`],
+        ["DESIGN.md", `${tokenCount} 個設計訊號`],
+        ["References", referenceNames.length ? referenceNames.slice(0, 3).join(" / ") : "尚未加入外部 reference"]
+      ],
+      impact: ["Source Explorer", "Parsed Summary"]
+    },
+    {
+      key: "parse",
+      index: "02",
+      title: "規則抽取",
+      status: warnings.length ? "warning" : "complete",
+      metric: `${skill.bullets.length} 條`,
+      summary: `${skill.bullets.length} 條 Skill rules、${tokenCount} 個 DESIGN tokens，${warningText}。`,
+      detailTitle: "抽取結果",
+      details: [
+        ["Skill rules", `${Math.max(0, skill.bullets.length - warnings.length)} 條可直接使用`],
+        ["Design tokens", designSignals.length ? designSignals.slice(0, 4).join(" / ") : "使用預設設計訊號"],
+        ["Warnings", warnings.length ? warnings.map(([label]) => label).slice(0, 3).join(" / ") : "目前乾淨"]
+      ],
+      impact: ["Verification", "Issues", "Skill 遵守度"]
+    },
+    {
+      key: "apply",
+      index: "03",
+      title: "套用到 UI",
+      status: "active",
+      metric: `${appliedRules}/${ruleTotal}`,
+      summary: appliedText,
+      detailTitle: "套用狀態",
+      details: [
+        ["已套用", `${appliedRules} 條規則影響目前 Preview`],
+        ["部分套用", `${partialRules} 條規則需人工檢查`],
+        ["畫面影響", widgets.slice(0, 3).join(" / ")]
+      ],
+      impact: ["生成情境", "版型決策", "UI Preview"]
+    },
+    {
+      key: "preview",
+      index: "04",
+      title: "生成 Preview",
+      status: previewPassed >= previewChecks - 1 ? "complete" : "active",
+      metric: `${previewPassed}/${previewChecks}`,
+      summary: `目前 Preview 通過 ${previewPassed} / ${previewChecks} 項檢查。`,
+      detailTitle: "畫面檢查",
+      details: [
+        ["版型", snapshot?.plan?.layoutLabel || snapshot?.template || "工作台預覽"],
+        ["資訊架構", snapshot?.plan?.iaPattern || "規則驅動"],
+        ["風險", snapshot?.risk || "待評估"]
+      ],
+      impact: ["Preview Canvas", "生成紀錄", "Reference Evidence"]
+    },
+    {
+      key: "evaluation",
+      index: "05",
+      title: "輸出評估",
+      status: snapshot?.score >= 88 ? "complete" : "warning",
+      metric: `${snapshot?.score || 93}`,
+      summary: `Skill 遵守度 ${snapshot?.score || 93}，偏移風險 ${snapshot?.risk || "低"}。`,
+      detailTitle: "評估輸出",
+      details: [
+        ["Skill 遵守度", `${snapshot?.score || 93} / 100`],
+        ["UI 完整度", `${snapshot?.quality || "8.8"}`],
+        ["Evidence", `${active.length} 組 reference 參與評估`]
+      ],
+      impact: ["生成評估", "Risk Notes", "本次試跑評分"]
+    }
+  ];
+}
+
+function renderVerificationFlow(steps) {
+  if (!verificationFlowSteps || !verificationFlowDetail) return;
+  const activeStep = steps.find((step) => step.key === activeVerificationStep) || steps[2] || steps[0];
+  activeVerificationStep = activeStep.key;
+  if (verificationFlowSummary) verificationFlowSummary.textContent = activeStep.summary;
+  verificationFlowSteps.innerHTML = steps
+    .map((step) => `
+      <button class="verification-flow-step ${step.status} ${step.key === activeStep.key ? "active" : ""}" type="button"
+        data-verification-step="${step.key}" role="tab" aria-selected="${step.key === activeStep.key ? "true" : "false"}">
+        <span>${step.index}</span>
+        <strong>${escapeHtml(step.title)}</strong>
+        <small>${escapeHtml(step.metric)}</small>
+      </button>
+    `)
+    .join("");
+  verificationFlowDetail.innerHTML = `
+    <div class="verification-detail-head">
+      <span>${activeStep.index}</span>
+      <div>
+        <strong>${escapeHtml(activeStep.detailTitle)}</strong>
+        <small>${escapeHtml(activeStep.summary)}</small>
+      </div>
+    </div>
+    <div class="verification-detail-grid">
+      ${activeStep.details.map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join("")}
+    </div>
+    <div class="verification-impact-list">
+      <span>影響區塊</span>
+      <div>${activeStep.impact.map((item) => `<b>${escapeHtml(item)}</b>`).join("")}</div>
+    </div>
+  `;
+}
+
+function updateVerificationStatus(snapshot = currentSnapshot) {
+  if (!skillText || !designText) return;
+  const skill = parseSkillContext(skillText.value);
+  const design = parseDesignUnderstanding(designText.value);
+  const active = typeof activeReferences === "function" ? activeReferences() : [];
+  const tokenCount = Math.max(0, design.cards.filter((card) => !/預設|基本/.test(card.title)).length);
+  const warnings = parseVerificationWarnings(skill, design, active);
+  const importedCount = [skillText.value.trim(), designText.value.trim(), active.length].filter(Boolean).length;
+  const parseState = warnings.length ? "Warning" : "Complete";
+  const ruleTotal = Math.max(skill.bullets.length, 1);
+  const applicableRules = Math.max(1, ruleTotal - Math.min(warnings.length, Math.max(0, ruleTotal - 1)));
+  const appliedRules = Math.max(1, Math.min(applicableRules, Math.round(applicableRules * 0.75) + Math.min(active.length, 2)));
+  const partialRules = Math.min(warnings.length + (snapshot?.modeKey === "exploratory" ? 1 : 0), Math.max(0, applicableRules - appliedRules));
+  const previewChecks = Math.max(4, applicableRules + tokenCount);
+  const previewPassed = Math.max(1, Math.min(previewChecks, previewChecks - Math.min(warnings.length, 3)));
+
+  if (sourceSkillRuleCount) sourceSkillRuleCount.textContent = `${skill.bullets.length} Rules`;
+  if (sourceSkillParseState) sourceSkillParseState.textContent = skill.bullets.length ? "已解析" : "需檢查";
+  if (sourceDesignTokenCount) sourceDesignTokenCount.textContent = `${tokenCount} Tokens`;
+  if (sourceDesignParseState) sourceDesignParseState.textContent = tokenCount ? "已解析" : "需檢查";
+  if (sourceReferenceCount) sourceReferenceCount.textContent = `${active.length} Files`;
+  if (sourceReferenceParseState) sourceReferenceParseState.textContent = active.length ? "已讀取" : "未選取";
+  if (parsedSummaryState) parsedSummaryState.textContent = warnings.length ? `${warnings.length} warnings` : "clean";
+  if (parsedStructureCount) parsedStructureCount.textContent = skill.headings.length;
+  if (parsedRuleCount) parsedRuleCount.textContent = skill.bullets.length;
+  if (parsedTokenCount) parsedTokenCount.textContent = tokenCount;
+  if (parsedReferenceCount) parsedReferenceCount.textContent = active.length;
+  if (parsingWarningList) {
+    parsingWarningList.innerHTML = warnings.length
+      ? warnings.map(([label, note]) => `<article><strong>${escapeHtml(label)}</strong><span>${escapeHtml(note)}</span></article>`).join("")
+      : '<article class="clean"><strong>Parsed Successfully</strong><span>目前來源結構、規則與 tokens 都可被本地 parser 讀取。</span></article>';
+  }
+
+  setVerificationStepState(topImportStatus, importedCount >= 2 ? "complete" : "warning", importedCount >= 2 ? "Complete" : `${importedCount} / 3`);
+  setVerificationStepState(topParseStatus, warnings.length ? "warning" : "complete", parseState);
+  setVerificationStepState(topApplyStatus, "active", `${appliedRules} / ${ruleTotal}`);
+  if (topApplyCount) topApplyCount.textContent = `${appliedRules} / ${ruleTotal}`;
+  if (topIssueCount) topIssueCount.textContent = `Issues ${warnings.length}`;
+
+  if (importVerificationText) importVerificationText.textContent = `SKILL.md、DESIGN.md 與 ${active.length} 組 References 已載入`;
+  if (parseVerificationText) parseVerificationText.textContent = `${skill.bullets.length} Rules、${tokenCount} Tokens，${warnings.length} 則需檢查`;
+  if (applyVerificationText) applyVerificationText.textContent = `${appliedRules} Applied / ${partialRules} Partial / ${Math.max(0, ruleTotal - applicableRules)} Not applicable`;
+  if (parsingCoverageMetric) parsingCoverageMetric.textContent = `${Math.max(0, ruleTotal - warnings.length)} / ${ruleTotal}`;
+  if (applicationCoverageMetric) applicationCoverageMetric.textContent = `${appliedRules} / ${applicableRules}`;
+  if (previewComplianceMetric) previewComplianceMetric.textContent = `${previewPassed} / ${previewChecks}`;
+  renderVerificationFlow(buildVerificationFlow({
+    skill,
+    design,
+    active,
+    warnings,
+    tokenCount,
+    appliedRules,
+    partialRules,
+    applicableRules,
+    ruleTotal,
+    previewPassed,
+    previewChecks,
+    snapshot
+  }));
+  renderInspectorPanels(snapshot);
 }
 
 function workflowLabel(item, index) {
@@ -843,13 +1348,14 @@ function activeReferences() {
 function updateReferenceCenter() {
   const allReferences = [...document.querySelectorAll(".reference-chip")];
   const active = activeReferences();
+  const parsedSkill = parseSkillContext(skillText.value);
   referenceCount.textContent = active.length;
   referenceReady.textContent = Math.max(0, active.length - (active.some((item) => item.kind === "檔案") ? 1 : 0));
   referenceConflict.textContent = active.some((item) => item.name.includes("Bootstrap")) && creativityRange.value > 70 ? 1 : 0;
   readingSourceCount.textContent = `${active.length + 2} 份`;
   readingEvidenceCount.textContent = `${active.length} 組`;
-  readingRuleCount.textContent = `${12 + active.length} 條`;
-  profileRuleCount.textContent = `${12 + active.length} 條`;
+  readingRuleCount.textContent = `${parsedSkill.bullets.length} 條`;
+  profileRuleCount.textContent = `${Math.max(parsedSkill.bullets.length, 1)} 條`;
   profileReferenceCount.textContent = `${active.length} 組`;
   readingSummary.textContent = active.length
     ? `已將 ${active.length} 組 Reference 對應至版型、元件與內容規則，可追溯其對預覽的影響。`
@@ -857,6 +1363,10 @@ function updateReferenceCenter() {
 
   if (active.length === 0) {
     referenceInsights.innerHTML = '<div class="reference-empty">尚未套用 reference，AI 將只依 Skill.md 與 DESIGN.md 產生預覽。</div>';
+    allReferences.forEach((chip) => {
+      chip.setAttribute("aria-pressed", chip.classList.contains("active") ? "true" : "false");
+    });
+    updateVerificationStatus();
     return;
   }
 
@@ -876,6 +1386,7 @@ function updateReferenceCenter() {
   allReferences.forEach((chip) => {
     chip.setAttribute("aria-pressed", chip.classList.contains("active") ? "true" : "false");
   });
+  updateVerificationStatus();
 }
 
 function setReadingProgress(activeIndex, state = "Ready") {
@@ -1293,7 +1804,6 @@ function renderExploratoryLayout(snapshot) {
   return `
     <div class="gen-header">
       <div><span class="mini-label">${snapshot.label}</span><h3>${snapshot.title}</h3></div>
-      <button class="btn btn-outline-dark btn-sm" type="button">鎖定方向</button>
     </div>
     ${contextSignal(snapshot)}
     ${referenceBadges(snapshot)}
@@ -1391,9 +1901,31 @@ function renderDensity() {
   mobileDensityValue.textContent = label;
 }
 
+function syncControlsFromSnapshot(snapshot) {
+  const controls = snapshot?.controls;
+  if (!controls) return;
+  if (controls.prompt != null) {
+    testPrompt.value = controls.prompt;
+    promptShortcutButtons.forEach((button) => {
+      button.classList.toggle("active", promptTemplates[button.dataset.promptTemplate] === controls.prompt);
+    });
+  }
+  if (controls.creativity != null) {
+    creativityRange.value = controls.creativity;
+    mobileCreativityRange.value = controls.creativity;
+    creativityValue.textContent = controls.creativity;
+    mobileCreativityValue.textContent = controls.creativity;
+  }
+  if (controls.density != null) {
+    densityRange.value = controls.density;
+    mobileDensityRange.value = controls.density;
+    renderDensity();
+  }
+}
+
 function refreshPreviewFromControls() {
   const modeKey = modeFromValue(Number(creativityRange.value));
-  const previewSeed = modeKey === currentSnapshot?.modeKey ? generationCount : 0;
+  const previewSeed = modeKey === currentSnapshot?.modeKey ? currentSnapshot?.generationSeed ?? generationCount : generationCount;
   const snapshot = buildSnapshot(chooseVariant(modeKey), modeKey, {
     id: currentSnapshot?.id || Date.now(),
     seed: previewSeed,
@@ -1577,11 +2109,13 @@ skillFile.addEventListener("change", async (event) => {
   if (!file) return;
   skillText.value = await file.text();
   renderSkillAiView();
+  updateVerificationStatus();
   refreshPreviewFromControls();
 });
 
 skillText.addEventListener("input", () => {
   renderSkillAiView();
+  updateVerificationStatus();
   refreshPreviewFromControls();
 });
 
@@ -1594,21 +2128,23 @@ designFile.addEventListener("change", async (event) => {
       designImportState.textContent = `已選擇 ${file.name}，此檔案不是可解析的文字格式。`;
       designSummary.textContent = `${file.name} 已加入本次設計上下文。`;
       designSummaryMeta.textContent = `${(file.size / 1024).toFixed(1)} KB / 非文字檔案`;
+      updateVerificationStatus();
       return;
     }
     designText.value = content;
     designImportState.textContent = `已讀取 ${file.name}，尚未套用至預覽。`;
     renderDesignSummary();
-    applyDesignTokens(parseDesignTokens(designText.value));
+    updateVerificationStatus();
   } catch (error) {
     designImportState.textContent = `無法讀取 ${file.name}，請改用文字格式或直接貼上內容。`;
+    updateVerificationStatus();
   }
 });
 
 designText.addEventListener("input", () => {
   designImportState.textContent = "內容已變更，尚未套用至預覽。";
   renderDesignSummary();
-  refreshPreviewFromControls();
+  updateVerificationStatus();
 });
 
 referenceChoose.addEventListener("click", (event) => {
@@ -1628,6 +2164,7 @@ referenceDrop.addEventListener("keydown", (event) => {
 referenceFile.addEventListener("change", (event) => {
   renderReferenceFiles(event.target.files);
   referenceFile.value = "";
+  updateVerificationStatus();
 });
 
 ["dragenter", "dragover"].forEach((eventName) => {
@@ -1646,6 +2183,7 @@ referenceFile.addEventListener("change", (event) => {
 
 referenceDrop.addEventListener("drop", (event) => {
   renderReferenceFiles(event.dataTransfer.files);
+  updateVerificationStatus();
 });
 
 historyList.addEventListener("click", (event) => {
@@ -1705,6 +2243,61 @@ designTabs.forEach((tab) => {
   });
 });
 
+sourceFileItems.forEach((button) => {
+  button.addEventListener("click", () => {
+    activeSourceKey = button.dataset.sourceKey || "skill";
+    sourceFileItems.forEach((item) => item.classList.toggle("active", item === button));
+    renderSourceDetail();
+  });
+});
+
+sourceDetailTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    activeSourceDetailTab = tab.dataset.sourceDetailTab || "raw";
+    sourceDetailTabs.forEach((item) => {
+      const selected = item === tab;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+    renderSourceDetail();
+  });
+});
+
+sourceOpenButton?.addEventListener("click", () => {
+  const targetMap = {
+    skill: "skillText",
+    design: "designText",
+    references: "referenceDrop"
+  };
+  const target = document.querySelector(`#${targetMap[activeSourceKey] || "skillText"}`);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (typeof target.focus === "function") target.focus({ preventScroll: true });
+});
+
+inspectorTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    inspectorTabs.forEach((item) => {
+      const selected = item === tab;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+    inspectorViews.forEach((view) => {
+      const visible = view.dataset.inspectorView === tab.dataset.inspectorTab;
+      view.classList.toggle("active", visible);
+      view.hidden = !visible;
+    });
+    renderInspectorPanels(currentSnapshot);
+  });
+});
+
+verificationFlowSteps?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-verification-step]");
+  if (!button) return;
+  activeVerificationStep = button.dataset.verificationStep;
+  updateVerificationStatus(currentSnapshot);
+});
+
 skillOutlineList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-outline-toggle]");
   if (!button) return;
@@ -1740,6 +2333,52 @@ function setupSourcePanelCollapse() {
       button.title = collapsed ? "展開區域" : "縮合區域";
       body.hidden = collapsed;
     });
+
+    if (panel.dataset.defaultCollapsed === "true") {
+      panel.classList.add("is-collapsed");
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-label", `展開 ${heading.querySelector("h2")?.textContent || "區域"}`);
+      button.title = "展開區域";
+      body.hidden = true;
+    }
+  });
+}
+
+function setupControlPanelCollapse() {
+  document.querySelectorAll(".control-panel .collapsible-control-section").forEach((section, index) => {
+    const heading = section.querySelector(":scope > .section-heading");
+    if (!heading) return;
+    const body = document.createElement("div");
+    body.className = "control-collapse-body";
+    body.id = `control-panel-body-${index}`;
+    [...section.children].filter((child) => child !== heading).forEach((child) => body.appendChild(child));
+    section.appendChild(body);
+
+    const button = document.createElement("button");
+    button.className = "panel-collapse-button";
+    button.type = "button";
+    button.setAttribute("aria-expanded", "true");
+    button.setAttribute("aria-controls", body.id);
+    button.setAttribute("aria-label", `縮合 ${heading.querySelector("h2")?.textContent || "區域"}`);
+    button.title = "縮合區域";
+    button.innerHTML = '<span aria-hidden="true"></span>';
+    heading.appendChild(button);
+
+    button.addEventListener("click", () => {
+      const collapsed = section.classList.toggle("is-collapsed");
+      button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      button.setAttribute("aria-label", `${collapsed ? "展開" : "縮合"} ${heading.querySelector("h2")?.textContent || "區域"}`);
+      button.title = collapsed ? "展開區域" : "縮合區域";
+      body.hidden = collapsed;
+    });
+
+    if (section.dataset.defaultCollapsed === "true") {
+      section.classList.add("is-collapsed");
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-label", `展開 ${heading.querySelector("h2")?.textContent || "區域"}`);
+      button.title = "展開區域";
+      body.hidden = true;
+    }
   });
 }
 
@@ -1749,12 +2388,18 @@ function setupReadingProcessCollapse() {
   const body = document.querySelector("#readingProcessBody");
   if (!section || !button || !body) return;
 
-  button.addEventListener("click", () => {
-    const collapsed = section.classList.toggle("is-collapsed");
+  const setCollapsed = (collapsed) => {
+    section.classList.toggle("is-collapsed", collapsed);
     button.setAttribute("aria-expanded", collapsed ? "false" : "true");
     button.setAttribute("aria-label", `${collapsed ? "展開" : "縮合"}從規則到畫面的轉譯軌跡`);
     button.title = collapsed ? "展開區域" : "縮合區域";
     body.hidden = collapsed;
+  };
+
+  setCollapsed(true);
+
+  button.addEventListener("click", () => {
+    setCollapsed(!section.classList.contains("is-collapsed"));
   });
 }
 
@@ -1763,8 +2408,9 @@ function applySourcePanelOrder() {
   [...sourcePanel.querySelectorAll(":scope > .panel-block")]
     .sort((a, b) => {
       const orderOf = (panel) => {
-        if (panel.classList.contains("skill-profile-panel")) return 0;
-        if (panel.classList.contains("rule-viewer-panel")) return 1;
+        if (panel.classList.contains("source-explorer-panel")) return 0;
+        if (panel.classList.contains("skill-profile-panel")) return 90;
+        if (panel.classList.contains("rule-viewer-panel")) return 91;
         return Number(panel.dataset.sourceOrder || 99);
       };
       return orderOf(a) - orderOf(b);
@@ -1772,11 +2418,25 @@ function applySourcePanelOrder() {
     .forEach((panel) => sourcePanel.appendChild(panel));
 }
 
-testPrompt.addEventListener("input", () => updateSkillRun());
+testPrompt.addEventListener("input", () => {
+  promptShortcutButtons.forEach((button) => button.classList.remove("active"));
+  updateSkillRun();
+});
+
+promptShortcutButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const template = promptTemplates[button.dataset.promptTemplate];
+    if (!template) return;
+    testPrompt.value = template;
+    promptShortcutButtons.forEach((item) => item.classList.toggle("active", item === button));
+    updateSkillRun(currentSnapshot);
+    if (trySkillStatus) trySkillStatus.textContent = `已套用${button.textContent.trim()}情境，按生成預覽`;
+  });
+});
 
 applyDesignButton.addEventListener("click", () => {
-  applyDesignTokens(parseDesignTokens(designText.value));
-  renderDesignSummary();
+  applyDesignPreviewUpdate();
+  updateVerificationStatus(currentSnapshot);
   showToast();
 });
 
@@ -1804,6 +2464,7 @@ exportReportButton?.addEventListener("click", () => {
 
 applySourcePanelOrder();
 setupSourcePanelCollapse();
+setupControlPanelCollapse();
 setupReadingProcessCollapse();
 renderEvaluation(modeFromValue(Number(creativityRange.value)));
 renderHistory();
@@ -1813,6 +2474,7 @@ renderSkillAiView();
 renderDesignSummary();
 applyDesignTokens(parseDesignTokens(designText.value), { initial: true });
 renderComplianceReport();
+updateVerificationStatus();
 
 function planningReferences() {
   return activeReferences().map((item) => ({
@@ -1829,7 +2491,7 @@ function buildPlanningState(options = {}) {
   const references = planningReferences();
   const planningContext = window.SkillPlanningLab.analyzeContext({
     skillText: skillText.value,
-    designText: designText.value,
+    designText: appliedDesignText,
     prompt: testPrompt.value,
     references,
     generationCount: generationSeed
@@ -1844,9 +2506,19 @@ function buildPlanningState(options = {}) {
 function buildSnapshot(variant, modeKey, options = {}) {
   const mode = evaluationModes[modeKey];
   const legacyContext = currentContextProfile();
+  const appliedDesign = parseDesignUnderstanding(appliedDesignText);
+  const designPresentation = parseDesignPresentation(appliedDesignText, appliedDesign.tokens);
+  legacyContext.design = appliedDesign;
   const { planningContext, plan, references } = buildPlanningState(options);
   const routeSeed = options.seed ?? generationCount;
   const density = densityFromValue(Number(densityRange.value))[1];
+  const designContract = {
+    summary: appliedDesign.summary.summary,
+    meta: appliedDesign.summary.meta,
+    tokens: appliedDesign.tokens,
+    presentation: designPresentation,
+    revision: designApplyCount
+  };
   const imageReferences = [...document.querySelectorAll('.reference-chip.active[data-reference-type="image"]')]
     .map((chip) => referenceImages.get(chip.dataset.referenceId))
     .filter(Boolean);
@@ -1873,6 +2545,7 @@ function buildSnapshot(variant, modeKey, options = {}) {
     contextKey: planningContext.domain,
     domain: planningContext.domainLabel,
     context: legacyContext,
+    designContract,
     planningContext,
     plan,
     density,
@@ -1889,9 +2562,14 @@ function buildSnapshot(variant, modeKey, options = {}) {
     quality,
     risk,
     score,
-    summary: `這次生成不是套固定 dashboard，而是先判讀 ${planningContext.domainLabel}、${planningContext.workflow} workflow 與 ${planningContext.dataTypes.join(" / ")} data，再選擇 ${plan.layoutLabel} layout 與 ${plan.widgets.map((item) => window.SkillPlanningLab.widgetTitle(item)).join("、")}。`,
+    summary: "",
     items: contextualEvaluationItems(mode.items, legacyContext, references.map((item) => item.name)),
-    generationSeed: routeSeed
+    generationSeed: routeSeed,
+    controls: {
+      prompt: testPrompt.value,
+      creativity: creativityRange.value,
+      density: densityRange.value
+    }
   };
 }
 
@@ -1912,12 +2590,12 @@ function renderPlanningPanels(snapshot = currentSnapshot) {
   if (contextDomain && contextFactList) {
     contextDomain.textContent = context.domainLabel;
     contextFactList.innerHTML = [
-      ["User", context.primaryUser],
-      ["Task", context.mainTask],
-      ["Workflow", context.workflow],
-      ["Risk", context.risk],
-      ["Data", context.dataTypes.join(" / ")],
-      ["Density", context.informationDensity]
+      ["使用者", context.primaryUser],
+      ["任務", context.mainTask],
+      ["流程", context.workflow],
+      ["風險", context.risk],
+      ["資料", context.dataTypes.join(" / ")],
+      ["密度", context.informationDensity]
     ].map(([label, value]) => `<article><span>${label}</span><strong>${escapeHtml(value)}</strong></article>`).join("");
   }
 
@@ -1932,7 +2610,7 @@ function renderPlanningPanels(snapshot = currentSnapshot) {
   }
 
   if (decisionSummary && decisionList) {
-    decisionSummary.textContent = `${plan.decisions.length} decisions`;
+    decisionSummary.textContent = `${plan.decisions.length} 項決策`;
     decisionList.innerHTML = plan.decisions
       .map((item, index) => `<article><span>${String(index + 1).padStart(2, "0")}</span><p>${escapeHtml(item)}</p></article>`)
       .join("");
@@ -1940,6 +2618,7 @@ function renderPlanningPanels(snapshot = currentSnapshot) {
 }
 
 function applySnapshot(snapshot) {
+  syncControlsFromSnapshot(snapshot);
   currentSnapshot = snapshot;
   activeGenerationId = snapshot.id;
   generatedUi.classList.remove("variant-pipeline", "variant-matrix", "variant-radar", "variant-review", "variant-planned");
@@ -1947,6 +2626,7 @@ function applySnapshot(snapshot) {
   generatedUi.classList.add(snapshot.variantClass);
   generatedUi.classList.add(...snapshot.refClasses);
   generatedUi.innerHTML = renderGeneratedLayout(snapshot);
+  syncPreviewTokenVars(snapshot.designContract?.tokens || activeDesignTokens);
   updateText("#confidenceValue", snapshot.confidence);
   updateText("#confidenceNote", snapshot.note);
   updateText("#hitMetric", snapshot.hit);
@@ -1967,6 +2647,7 @@ function applySnapshot(snapshot) {
   updateReferenceCenter();
   updateEvidence(snapshot);
   updateSkillRun(snapshot);
+  updateVerificationStatus(snapshot);
   renderHistory();
 }
 
@@ -1981,15 +2662,13 @@ function renderHistory() {
     .map((item) => `
       <button class="history-card planned-history-card ${item.id === activeGenerationId ? "active" : ""}" type="button" data-history-id="${item.id}">
         <div class="history-card-top">
-          <span>#${String(item.count).padStart(2, "0")}</span>
+          <span>${item.isDemo ? "Demo" : `#${String(item.count).padStart(2, "0")}`}</span>
           <span>${item.time}</span>
         </div>
-        <strong>${escapeHtml(item.planningContext.domainLabel)}</strong>
-        <small>${escapeHtml(item.plan.layoutLabel)} / ${escapeHtml(item.plan.iaPattern)}</small>
+        <strong>${escapeHtml(item.planningContext.mainTask || item.planningContext.domainLabel)}</strong>
         <div class="history-widget-tags">
-          ${item.plan.widgets.slice(0, 4).map((widget) => `<span>${escapeHtml(window.SkillPlanningLab.widgetTitle(widget))}</span>`).join("")}
+          ${item.plan.widgets.slice(0, 3).map((widget) => `<span>${escapeHtml(window.SkillPlanningLab.widgetTitle(widget))}</span>`).join("")}
         </div>
-        <p>${escapeHtml(item.plan.decisions[0] || item.planningContext.reason)}</p>
       </button>
     `)
     .join("");
@@ -2020,7 +2699,10 @@ function initializePlanningPreview() {
     id: currentSnapshot?.id || Date.now(),
     seed: generationCount
   });
+  snapshot.isDemo = true;
+  snapshot.time = "Demo";
   renderEvaluation(modeKey);
+  if (generationHistory.length === 0) generationHistory.unshift(snapshot);
   applySnapshot(snapshot);
   renderDensity();
   setReadingProgress(2, "Ready");

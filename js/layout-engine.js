@@ -26,22 +26,49 @@
     const plan = snapshot.plan;
     const zones = zoneForLayout(plan.layout, plan.widgets).primary.filter(Boolean);
     const inspector = zoneForLayout(plan.layout, plan.widgets).inspector.filter(Boolean);
+    const designProfile = snapshot.designContract?.presentation?.key || "flow";
+
+    const summary = snapshot.summary ? `<p class="planned-summary" id="summaryText">${esc(snapshot.summary)}</p>` : "";
 
     return `
+      <div class="planned-preview-shell design-profile-${designProfile}" data-design-revision="${snapshot.designContract?.revision || 0}">
       <div class="gen-header planned-preview-header">
-        <div><span class="mini-label">${snapshot.label}</span><h3>${snapshot.title}</h3></div>
-        <button class="btn btn-outline-dark btn-sm" type="button">鎖定規劃</button>
+        <div><span class="mini-label">${esc(snapshot.label)}</span><h3>${esc(snapshot.title)}</h3></div>
       </div>
-      <nav class="planned-nav" aria-label="AI 規劃導覽">${plan.navigation.map((item) => `<span>${item}</span>`).join("")}</nav>
       ${renderTemplate(snapshot, zones, inspector)}
       <div class="planned-summary-row">
-        <article><span>IA</span><strong>${plan.iaPattern}</strong></article>
+        <article><span>IA</span><strong>${esc(plan.iaPattern)}</strong></article>
         <article><span>Widgets</span><strong>${plan.widgets.length}</strong></article>
-        <article><span>Risk</span><strong id="riskMetric">${snapshot.risk}</strong></article>
-        <article><span>Score</span><strong id="qualityMetric">${snapshot.quality}</strong></article>
+        <article><span>Risk</span><strong id="riskMetric">${esc(snapshot.risk)}</strong></article>
+        <article><span>Score</span><strong id="qualityMetric">${esc(snapshot.quality)}</strong></article>
       </div>
-      <p class="planned-summary" id="summaryText">${snapshot.summary}</p>
+      ${summary}
+      </div>
     `;
+  }
+
+  function renderDesignContract(snapshot) {
+    const contract = snapshot.designContract;
+    if (!contract) return "";
+    const tokens = contract.tokens || {};
+    const tokenItems = [
+      ["Primary", tokens.primary],
+      ["Accent", tokens.secondary],
+      ["Canvas", tokens.canvas],
+      ["Radius", tokens.radius != null ? `${tokens.radius}px` : ""],
+      ["Density", tokens.density]
+    ].filter(([, value]) => value);
+
+    return `<section class="planned-design-contract" aria-label="DESIGN.md 套用摘要">
+      <div>
+        <span>DESIGN.md v${contract.revision || 0} · ${esc(contract.presentation?.label || "流程導向")}</span>
+        <strong>${esc(contract.summary)}</strong>
+        <small>${esc(contract.presentation?.note || contract.meta)}</small>
+      </div>
+      <div class="design-contract-tokens">
+        ${tokenItems.map(([label, value]) => `<span><b>${esc(label)}</b>${esc(value)}</span>`).join("")}
+      </div>
+    </section>`;
   }
 
   function renderTemplate(snapshot, zones, inspector) {
@@ -77,14 +104,21 @@
       </div>`;
     }
 
-    return `<div class="planned-layout planned-layout-split">
-      <section class="planned-primary" aria-label="主要生成元件">
+    return `<div class="planned-layout planned-layout-studio">
+      <section class="studio-focus" aria-label="主要生成工作物件">
         ${signature}
-        ${widgets(zones.slice(0, 1), 0)}
       </section>
-      <aside class="planned-inspector" aria-label="規劃檢查">
+      <section class="studio-sequence" aria-label="生成決策順序">
+        <div class="studio-section-head"><span>Decision Sequence</span><strong>生成決策</strong></div>
+        <div class="studio-step-list">
+          ${plan.decisions.slice(0, 3).map((item, index) => `<article class="${index === 0 ? "active" : ""}"><b>${String(index + 1).padStart(2, "0")}</b><p>${esc(item)}</p></article>`).join("")}
+        </div>
+      </section>
+      <aside class="studio-brief" aria-label="生成摘要">
         ${inspectorSummary}
-        ${widgets(inspector.slice(0, 2), zones.length)}
+        <div class="studio-signal-bars" aria-hidden="true">
+          ${[62, 88, 72, snapshot.score, 79].map((value, index) => `<i style="--signal:${Math.min(98, value + index)}%"></i>`).join("")}
+        </div>
       </aside>
     </div>`;
   }
@@ -96,6 +130,7 @@
     if (context.domain === "medical") return renderMedicalSurface(snapshot, mode);
     if (context.domain === "crm") return renderPipelineSurface(snapshot, mode);
     if (context.domain === "support") return renderSupportSurface(snapshot, mode);
+    if (context.domain === "finance") return renderFinanceSurface(snapshot, mode);
     if (context.domain === "esg") return renderEvidenceGateSurface(snapshot, mode);
     if (context.domain === "security") return renderSecuritySurface(snapshot, mode);
     if (context.domain === "developer") return renderConsoleSurface(snapshot, mode);
@@ -142,6 +177,23 @@
     </section>`;
   }
 
+  function renderFinanceSurface(snapshot, mode) {
+    const lanes = mode === "exploratory"
+      ? ["異常交易", "關聯曝險", "規則例外", "核准條件"]
+      : ["交易審查", "曝險比對", "稽核證據", "決策閘門"];
+    return `<section class="signature-surface signature-finance signature-mode-${mode}">
+      <div class="signature-head"><span>Risk Work Object</span><strong>金融風控審查軌</strong><small>${esc(snapshot.planningContext.risk)} risk</small></div>
+      <div class="finance-risk-grid">
+        ${lanes.map((lane, index) => `<button class="${index === 1 ? "watch" : index === 2 ? "risk" : ""}" type="button"><span>${lane}</span><b>${index === 2 ? "Hold" : index === 3 ? "Review" : "Pass"}</b></button>`).join("")}
+      </div>
+      <div class="finance-ledger-line">
+        <span>Rule Match</span><i style="--level:82%"></i>
+        <span>Exposure</span><i style="--level:64%"></i>
+        <span>Audit Trace</span><i style="--level:${snapshot.score}%"></i>
+      </div>
+    </section>`;
+  }
+
   function renderEvidenceGateSurface(snapshot, mode) {
     return `<section class="signature-surface signature-evidence-gate signature-mode-${mode}">
       <div class="signature-head"><span>Governance Work Object</span><strong>證據到核准閘門</strong><small>${esc(snapshot.planningContext.risk)} risk</small></div>
@@ -174,12 +226,24 @@
     const scale = mode === "exploratory" ? "expanded" : mode === "conservative" ? "compact" : "balanced";
     return `<section class="signature-surface signature-planning-canvas signature-${scale} signature-mode-${mode}">
       <div class="signature-head"><span>Planning Work Object</span><strong>Skill 到 UI 的決策地圖</strong><small>${esc(plan.layoutLabel)}</small></div>
-      <div class="planning-map">
-        ${["Skill", "Intent", "IA", "Widget", "Preview"].map((node, index) => `
-          <button class="planning-node node-${index + 1}" type="button">
-            <b>${node}</b><span>${esc(plan.navigation[index] || plan.widgets[index] || "Decision")}</span>
-          </button>
-        `).join("")}
+      <div class="constraint-composition">
+        <div class="constraint-track" aria-label="規則到預覽的生成流程">
+          ${[
+            ["規範", "Skill"],
+            ["創意", "Intent"],
+            ["可讀性", "IA"],
+            ["一致性", "Preview"]
+          ].map(([label, meta], index) => `
+            <button class="constraint-stage stage-${index + 1} ${index === 1 ? "active" : ""}" type="button">
+              <b>${label}</b><span>${esc(plan.navigation[index] || meta)}</span>
+            </button>
+          `).join("")}
+        </div>
+        <aside class="constraint-confidence">
+          <span>整體信心</span>
+          <strong>${esc(snapshot.confidence)}</strong>
+          <small>${esc(snapshot.note)}</small>
+        </aside>
       </div>
     </section>`;
   }
