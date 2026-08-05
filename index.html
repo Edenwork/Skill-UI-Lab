@@ -184,12 +184,12 @@
             <h2>SKILL.md</h2>
           </div>
           <div class="context-tabs" role="tablist" aria-label="SKILL.md 檢視切換">
-            <button class="active" type="button" data-skill-tab="source" role="tab" aria-selected="true">Source</button>
-            <button type="button" data-skill-tab="ai" role="tab" aria-selected="false">Parsed</button>
+            <button type="button" data-skill-tab="source" role="tab" aria-selected="false">Source</button>
+            <button class="active" type="button" data-skill-tab="ai" role="tab" aria-selected="true">Parsed</button>
           </div>
           <label class="form-label" for="skillFile">匯入 SKILL.md</label>
           <input class="form-control form-control-sm" id="skillFile" type="file" accept=".md,.txt">
-          <div class="skill-source-view active" data-skill-view="source">
+          <div class="skill-source-view" data-skill-view="source" hidden>
             <label class="form-label mt-3" for="skillText">或直接貼上內容</label>
             <textarea class="form-control lab-textarea" id="skillText" rows="7">---
 name: company-design
@@ -202,7 +202,7 @@ description: 建立專業、可掃描的 AI agent dashboard。
 - 避免行銷頁與過度裝飾
 - 顯示規則命中與風險評估</textarea>
           </div>
-          <div class="skill-ai-view" data-skill-view="ai" hidden>
+          <div class="skill-ai-view active" data-skill-view="ai">
             <div class="context-summary-card">
               <span>Skill Summary</span>
               <strong id="skillAiSummary">建立專業、可掃描的 AI agent dashboard。</strong>
@@ -234,7 +234,7 @@ description: 建立專業、可掃描的 AI agent dashboard。
           </div>
         </section>
 
-        <section class="panel-block reference-center" data-source-order="4">
+        <section class="panel-block reference-center" data-source-order="4" data-default-collapsed="true">
           <div class="section-heading">
             <span>04</span>
             <h2>Reference Center</h2>
@@ -274,14 +274,14 @@ description: 建立專業、可掃描的 AI agent dashboard。
             <h2>DESIGN.md</h2>
           </div>
           <div class="context-tabs" role="tablist" aria-label="DESIGN.md 檢視切換">
-            <button class="active" type="button" data-design-tab="source" role="tab"
-              aria-selected="true">Source</button>
-            <button type="button" data-design-tab="ai" role="tab" aria-selected="false">Parsed</button>
+            <button type="button" data-design-tab="source" role="tab"
+              aria-selected="false">Source</button>
+            <button class="active" type="button" data-design-tab="ai" role="tab" aria-selected="true">Parsed</button>
           </div>
           <label class="form-label" for="designFile">匯入設計檔案</label>
           <input class="form-control form-control-sm" id="designFile" type="file">
           <span class="design-import-state" id="designImportState" aria-live="polite">可選擇任何檔案；本次讀取不保存。</span>
-          <div class="design-source-view active" data-design-view="source">
+          <div class="design-source-view" data-design-view="source" hidden>
             <label class="form-label mt-3" for="designText">設計內容</label>
             <textarea class="form-control lab-textarea small" id="designText" rows="6">---
 name: Eden Skill Lab
