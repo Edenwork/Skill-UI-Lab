@@ -36,18 +36,18 @@
             <strong id="verificationSkillName">company-design</strong>
           </div>
           <div class="verification-step complete" id="topImportStatus">
-            <span>01 Import</span>
+            <span>已載入</span>
             <strong>Complete</strong>
           </div>
           <div class="verification-step warning" id="topParseStatus">
-            <span>02 Parse</span>
+            <span>已解析</span>
             <strong>Warning</strong>
           </div>
           <div class="verification-step active" id="topApplyStatus">
-            <span>03 Apply</span>
+            <span>已套用</span>
             <strong id="topApplyCount">9 / 14</strong>
           </div>
-          <div class="verification-issues" id="topIssueCount">Issues 2</div>
+          <div class="verification-issues" id="topIssueCount">待確認 2</div>
         </div>
         <button class="btn btn-dark btn-sm" id="runTopButton" type="button">執行測試</button>
       </div>
@@ -300,7 +300,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <strong id="designSummary">企業 AI 工作台的安靜、緊湊設計方向。</strong>
             <small id="designSummaryMeta">3 組色彩 / 8px 圓角 / compact 密度</small>
           </div>
-          <div class="design-ai-view" data-design-view="ai" hidden>
+          <div class="design-ai-view active" data-design-view="ai">
             <div class="design-understanding-grid" id="designUnderstandingGrid" aria-label="DESIGN.md AI 理解卡"></div>
             <div class="context-block design-pattern-block">
               <div class="context-block-title"><span>Parsed Tokens</span><strong id="designTokenCount">5
@@ -519,10 +519,18 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
               </div>
             </section>
           </div>
+        </section>
 
+        <section class="technical-details is-collapsed" aria-label="技術細節">
+          <button class="technical-details-toggle" id="technicalDetailsToggle" type="button"
+            aria-expanded="false" aria-controls="technicalDetailsBody">
+            <span>技術細節</span>
+            <strong>追蹤、生成情境、版型決策</strong>
+          </button>
+          <div class="technical-details-body" id="technicalDetailsBody" hidden>
           <div class="prompt-console preview-output-console">
             <div class="section-heading generation-result-heading mb-2">
-              <span>Reading Result</span>
+              <span>讀取結果</span>
               <h2>生成讀取結果</h2>
             </div>
             <div class="try-output-grid" aria-live="polite">

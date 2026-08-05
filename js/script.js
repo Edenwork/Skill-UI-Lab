@@ -135,6 +135,10 @@ const managementScore = document.querySelector("#managementScore");
 const generationScore = document.querySelector("#generationScore");
 const traceScore = document.querySelector("#traceScore");
 const skillRunNote = document.querySelector("#skillRunNote");
+const phaseZeroSummary = document.querySelector("#phaseZeroSummary");
+const phasePassedCount = document.querySelector("#phasePassedCount");
+const phaseReviewCount = document.querySelector("#phaseReviewCount");
+const phaseFailedCount = document.querySelector("#phaseFailedCount");
 
 let generationCount = 0;
 let activeGenerationId = null;
@@ -1139,7 +1143,6 @@ function updateVerificationStatus(snapshot = currentSnapshot) {
   const tokenCount = Math.max(0, design.cards.filter((card) => !/預設|基本/.test(card.title)).length);
   const warnings = parseVerificationWarnings(skill, design, active);
   const importedCount = [skillText.value.trim(), designText.value.trim(), active.length].filter(Boolean).length;
-  const parseState = warnings.length ? "Warning" : "Complete";
   const ruleTotal = Math.max(skill.bullets.length, 1);
   const applicableRules = Math.max(1, ruleTotal - Math.min(warnings.length, Math.max(0, ruleTotal - 1)));
   const appliedRules = Math.max(1, Math.min(applicableRules, Math.round(applicableRules * 0.75) + Math.min(active.length, 2)));
