@@ -2415,6 +2415,24 @@ function setupReadingProcessCollapse() {
   });
 }
 
+function setupTechnicalDetailsCollapse() {
+  const section = document.querySelector(".technical-details");
+  const button = document.querySelector("#technicalDetailsToggle");
+  const body = document.querySelector("#technicalDetailsBody");
+  if (!section || !button || !body) return;
+
+  const setCollapsed = (collapsed) => {
+    section.classList.toggle("is-collapsed", collapsed);
+    button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    body.hidden = collapsed;
+  };
+
+  setCollapsed(true);
+  button.addEventListener("click", () => {
+    setCollapsed(!section.classList.contains("is-collapsed"));
+  });
+}
+
 function applySourcePanelOrder() {
   const sourcePanel = document.querySelector(".source-panel");
   [...sourcePanel.querySelectorAll(":scope > .panel-block")]
@@ -2478,6 +2496,7 @@ applySourcePanelOrder();
 setupSourcePanelCollapse();
 setupControlPanelCollapse();
 setupReadingProcessCollapse();
+setupTechnicalDetailsCollapse();
 renderEvaluation(modeFromValue(Number(creativityRange.value)));
 renderHistory();
 updateReferenceCenter();
