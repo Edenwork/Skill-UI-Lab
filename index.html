@@ -588,51 +588,51 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
         <section class="panel-block sticky-control">
           <div class="inspector-tabs" role="tablist" aria-label="Inspector 檢視">
             <button class="active" type="button" data-inspector-tab="verification"
-              aria-selected="true">Verification</button>
-            <button type="button" data-inspector-tab="evidence" aria-selected="false">Evidence</button>
-            <button type="button" data-inspector-tab="issues" aria-selected="false">Issues</button>
+              aria-selected="true">審核</button>
+            <button type="button" data-inspector-tab="evidence" aria-selected="false">證據</button>
+            <button type="button" data-inspector-tab="issues" aria-selected="false">問題</button>
           </div>
 
           <section class="verification-inspector inspector-view active collapsible-control-section"
             data-inspector-view="verification" aria-label="Skill Verification" data-default-collapsed="false">
             <div class="section-heading">
-              <span>Inspector</span>
-              <h2>Verification</h2>
+              <span>審核面板</span>
+              <h2>Skill 審核</h2>
             </div>
             <div class="verification-stage-list" id="verificationStageList">
               <article>
                 <span class="check-mark complete">✓</span>
                 <div>
-                  <strong>Import</strong>
+                  <strong>已載入</strong>
                   <small id="importVerificationText">SKILL.md、DESIGN.md 與 2 組 References 已載入</small>
                 </div>
               </article>
               <article>
                 <span class="check-mark warning">△</span>
                 <div>
-                  <strong>Parse</strong>
+                  <strong>已理解</strong>
                   <small id="parseVerificationText">4 Rules、5 Tokens，2 則需檢查</small>
                 </div>
               </article>
               <article>
                 <span class="check-mark active">•</span>
                 <div>
-                  <strong>Application</strong>
-                  <small id="applyVerificationText">9 Applied / 3 Partial / 2 Not applicable</small>
+                  <strong>已套用</strong>
+                  <small id="applyVerificationText">3 通過 / 1 待確認 / 0 未通過</small>
                 </div>
               </article>
             </div>
             <div class="verification-metric-grid">
               <div>
-                <span>Parsing Coverage</span>
+                <span>通過</span>
                 <strong id="parsingCoverageMetric">3 / 4</strong>
               </div>
               <div>
-                <span>Application Coverage</span>
+                <span>待確認</span>
                 <strong id="applicationCoverageMetric">9 / 12</strong>
               </div>
               <div>
-                <span>Preview Compliance</span>
+                <span>未通過</span>
                 <strong id="previewComplianceMetric">11 / 12</strong>
               </div>
             </div>
@@ -641,21 +641,21 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
           <section class="inspector-view evidence-inspector" data-inspector-view="evidence" hidden
             aria-label="Evidence">
             <div class="section-heading">
-              <span>Evidence</span>
-              <h2>Parsed Evidence</h2>
+              <span>證據</span>
+              <h2>解析證據</h2>
             </div>
             <div class="inspector-evidence-list" id="inspectorEvidenceList" aria-live="polite"></div>
           </section>
 
           <section class="inspector-view issues-inspector" data-inspector-view="issues" hidden aria-label="Issues">
             <div class="section-heading">
-              <span>Issues</span>
-              <h2>Parsing Issues</h2>
+              <span>問題</span>
+              <h2>解析問題</h2>
             </div>
             <div class="inspector-issue-list" id="inspectorIssueList" aria-live="polite"></div>
           </section>
 
-          <section class="score-collapsible-section collapsible-control-section" data-default-collapsed="true">
+          <section class="score-collapsible-section phase0-deferred collapsible-control-section" data-default-collapsed="true">
             <div class="section-heading">
               <span>Score</span>
               <h2>Skill 遵守度</h2>
@@ -671,7 +671,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             </div>
           </section>
 
-          <section class="evaluation-collapsible-section collapsible-control-section" data-default-collapsed="true">
+          <section class="evaluation-collapsible-section phase0-deferred collapsible-control-section" data-default-collapsed="true">
             <div class="section-heading">
               <span>Evaluation</span>
               <h2>生成評估</h2>
@@ -679,7 +679,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <div class="evaluation-list" id="evaluationList"></div>
           </section>
 
-          <div class="evidence-panel">
+          <div class="evidence-panel phase0-deferred">
             <div class="section-heading">
               <span>Evidence</span>
               <h2>Reference Evidence</h2>
@@ -687,7 +687,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <div class="evidence-list" id="evidenceList" aria-live="polite"></div>
           </div>
 
-          <div class="evidence-panel risk-panel">
+          <div class="evidence-panel risk-panel phase0-deferred">
             <div class="section-heading">
               <span>Risk</span>
               <h2>Risk Notes</h2>
@@ -695,7 +695,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <div class="risk-note-list" id="riskNoteList" aria-live="polite"></div>
           </div>
 
-          <div class="evidence-panel skill-run-panel">
+          <div class="evidence-panel skill-run-panel phase0-deferred">
             <div class="section-heading">
               <span>Run</span>
               <h2>本次試跑評分</h2>

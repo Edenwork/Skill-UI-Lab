@@ -307,6 +307,10 @@
   margin-top: 14px;
 }
 
+.phase0-deferred {
+  display: none !important;
+}
+
 .verification-inspector .section-heading,
 .score-collapsible-section .section-heading,
 .evaluation-collapsible-section .section-heading {

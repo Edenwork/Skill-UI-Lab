@@ -1167,18 +1167,27 @@ function updateVerificationStatus(snapshot = currentSnapshot) {
       : '<article class="clean"><strong>Parsed Successfully</strong><span>目前來源結構、規則與 tokens 都可被本地 parser 讀取。</span></article>';
   }
 
-  setVerificationStepState(topImportStatus, importedCount >= 2 ? "complete" : "warning", importedCount >= 2 ? "Complete" : `${importedCount} / 3`);
-  setVerificationStepState(topParseStatus, warnings.length ? "warning" : "complete", parseState);
+  const failedRules = 0;
+  const reviewRules = warnings.length;
+  const passedRules = Math.max(0, Math.min(ruleTotal, applicableRules - partialRules - failedRules));
+  setVerificationStepState(topImportStatus, importedCount >= 2 ? "complete" : "warning", `${importedCount} / 3`);
+  setVerificationStepState(topParseStatus, warnings.length ? "warning" : "complete", `${Math.max(0, ruleTotal - warnings.length)} / ${ruleTotal}`);
   setVerificationStepState(topApplyStatus, "active", `${appliedRules} / ${ruleTotal}`);
   if (topApplyCount) topApplyCount.textContent = `${appliedRules} / ${ruleTotal}`;
-  if (topIssueCount) topIssueCount.textContent = `Issues ${warnings.length}`;
+  if (topIssueCount) topIssueCount.textContent = `待確認 ${reviewRules}`;
+  if (phasePassedCount) phasePassedCount.textContent = passedRules;
+  if (phaseReviewCount) phaseReviewCount.textContent = reviewRules;
+  if (phaseFailedCount) phaseFailedCount.textContent = failedRules;
+  if (phaseZeroSummary) {
+    phaseZeroSummary.textContent = `AI 已讀取 company-design Skill，${ruleTotal} 條規則中 ${passedRules} 條可驗證通過，${reviewRules} 條需要人工確認。`;
+  }
 
   if (importVerificationText) importVerificationText.textContent = `SKILL.md、DESIGN.md 與 ${active.length} 組 References 已載入`;
-  if (parseVerificationText) parseVerificationText.textContent = `${skill.bullets.length} Rules、${tokenCount} Tokens，${warnings.length} 則需檢查`;
-  if (applyVerificationText) applyVerificationText.textContent = `${appliedRules} Applied / ${partialRules} Partial / ${Math.max(0, ruleTotal - applicableRules)} Not applicable`;
-  if (parsingCoverageMetric) parsingCoverageMetric.textContent = `${Math.max(0, ruleTotal - warnings.length)} / ${ruleTotal}`;
-  if (applicationCoverageMetric) applicationCoverageMetric.textContent = `${appliedRules} / ${applicableRules}`;
-  if (previewComplianceMetric) previewComplianceMetric.textContent = `${previewPassed} / ${previewChecks}`;
+  if (parseVerificationText) parseVerificationText.textContent = `${skill.bullets.length} Rules、${tokenCount} Tokens，${warnings.length} 則待確認`;
+  if (applyVerificationText) applyVerificationText.textContent = `${passedRules} 通過 / ${reviewRules} 待確認 / ${failedRules} 未通過`;
+  if (parsingCoverageMetric) parsingCoverageMetric.textContent = passedRules;
+  if (applicationCoverageMetric) applicationCoverageMetric.textContent = reviewRules;
+  if (previewComplianceMetric) previewComplianceMetric.textContent = failedRules;
   renderVerificationFlow(buildVerificationFlow({
     skill,
     design,
