@@ -359,7 +359,7 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
         <div class="prompt-console preview-input-console">
           <div class="try-skill-header">
             <div>
-              <label class="form-label" for="testPrompt">請輸入 Prompt</label>
+              <label class="form-label" for="testPrompt">測試 Prompt</label>
               <!-- <p>輸入需求後只做本次試跑，不保存內容。</p> -->
             </div>
             <span id="trySkillStatus">尚未試跑</span>
@@ -375,16 +375,16 @@ Quiet design studio discipline with enterprise AI clarity.</textarea>
             <button type="button" data-prompt-template="finance">金融</button>
             <button type="button" data-prompt-template="support">客服</button>
           </div>
-          <div class="history-console">
-            <div class="section-heading mb-2">
+          <details class="history-console compact-history">
+            <summary>
               <h2>生成紀錄</h2>
-              <span>History</span>
-            </div>
+              <span>最近 8 次</span>
+            </summary>
             <div class="generation-diff" id="generationDiff" aria-live="polite"></div>
             <div class="history-list" id="historyList" aria-live="polite">
               <div class="history-empty">按下生成預覽後，這裡會保留最近 8 次 UI 版本。</div>
             </div>
-          </div>
+          </details>
         </div>
 
         <div class="generation-overlay d-none" id="generationOverlay" role="status" aria-live="polite">
